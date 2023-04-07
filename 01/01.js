@@ -9,6 +9,7 @@ var count = 3;
 	
 var colorUniformLocation;
 var angle = 0;
+var angleInRadians = 0;
 var matrix;
 var matrixLocation;
 var translationMatrix;
@@ -28,14 +29,8 @@ var shapeScale = {
     2 : [1.0,1.0],
     3 : [1.0,1.0]
 };
-var shapeAngle = {
-    1 : 0,
-    2 : 0,
-    3 : 0
-}
 var translation = shapeTranslation[1];
 var scale = shapeScale[1];
-var angleInRadians = shapeAngle[1];
 
 window.onload = function init()
 {
@@ -51,7 +46,6 @@ window.onload = function init()
         this.classList.add('selected');
         translation = shapeTranslation[this.value];
         scale = shapeScale[this.value];
-        angleInRadians = shapeAngle[this.value];
         Xvalue.innerHTML = translation[0];
         Yvalue.innerHTML = translation[1];
         scaleX.innerHTML = scale[0];
@@ -199,7 +193,6 @@ function drawTriangle() {
 	count = 3; //number of vertices 
 	translation = shapeTranslation[1];
     scale = shapeScale[1];
-    angleInRadians = shapeAngle[1];
 	
 	angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
 
@@ -233,7 +226,6 @@ function drawRectangle() {
 	count = 6; //number of vertices 
 	translation = shapeTranslation[2];
     scale = shapeScale[2];
-    angleInRadians = shapeAngle[2];
 	
 	// angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
 
@@ -374,13 +366,13 @@ function setGeometry(gl, shape) {
           gl.bufferData(
             gl.ARRAY_BUFFER,
             new Float32Array([
-                // left column
-                0, 0,
-                30, 0,
-                0, 150,
-                0, 150,
-                30, 0,
-                30, 150,
+                5, 150,
+                75, 0,
+                75, 100,
+
+                75, 100,
+                0, 30,
+                150, 30,
                 
                 //bottom
                 0,150,
