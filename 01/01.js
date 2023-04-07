@@ -9,7 +9,6 @@ var count = 3;
 	
 var colorUniformLocation;
 var angle = 0;
-var angleInRadians = 0;
 var matrix;
 var matrixLocation;
 var translationMatrix;
@@ -17,7 +16,7 @@ var rotationMatrix;
 var scaleMatrix;
 var moveOriginMatrix; //move origin to 'center' of F as center of rotation
 var projectionMatrix;
-var renderValue;
+var renderValue = 1;
 
 var shapeTranslation = {
     1 : [75, 100],
@@ -29,8 +28,14 @@ var shapeScale = {
     2 : [1.0,1.0],
     3 : [1.0,1.0]
 };
+var shapeAngleInRad = {
+    1 : [0],
+    2 : [0],
+    3 : [0]
+}
 var translation = shapeTranslation[1];
 var scale = shapeScale[1];
+var angleInRadians = shapeAngleInRad[1];
 
 window.onload = function init()
 {
@@ -46,13 +51,14 @@ window.onload = function init()
         this.classList.add('selected');
         translation = shapeTranslation[this.value];
         scale = shapeScale[this.value];
+        angleInRadians = shapeAngleInRad[this.value];
         Xvalue.innerHTML = translation[0];
         Yvalue.innerHTML = translation[1];
         scaleX.innerHTML = scale[0];
         scaleY.innerHTML = scale[1];
+        angleValue.innerHTML = angleInRadians * 180/Math.PI;
         renderValue = this.value;
         render();
-        console.log(this.value);
     }
 
     var removeSelectClass = function () {
@@ -95,8 +101,6 @@ window.onload = function init()
 	
 	matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    // translation = shapeTranslation[1];
-
 	//Update  X according to X slider
 	var Xvalue = document.getElementById("Xvalue");
 	Xvalue.innerHTML = translation[0];
@@ -121,7 +125,7 @@ window.onload = function init()
 	angleValue.innerHTML = angle;
 	document.getElementById("sliderA").onchange = function(event) {
         var angleInDegrees =  360 - event.target.value;
-		angleInRadians = angleInDegrees * Math.PI/180; //convert degree to radian
+		angleInRadians[0] = angleInDegrees * Math.PI/180; //convert degree to radian
 		angleValue.innerHTML = 360 - angleInDegrees;
 		render();
     };
@@ -152,38 +156,20 @@ window.onload = function init()
 
 function render() 
 {
-	// Compute the matrices
-	// projectionMatrix = m3.projection(gl.canvas.width, gl.canvas.height);
-	// translationMatrix = m3.translation(translation[0], translation[1]);
-    // rotationMatrix = m3.rotation(angleInRadians);
-    // scaleMatrix = m3.scaling(scale[0], scale[1]);
-	// moveOriginMatrix = m3.translation(-50, -75);
-	
-    // // Multiply the matrices.
-    // matrix = m3.multiply(projectionMatrix, translationMatrix);
-    // matrix = m3.multiply(matrix, rotationMatrix);
-	// matrix = m3.multiply(matrix, scaleMatrix);
-	// matrix = m3.multiply(matrix, moveOriginMatrix);
-
-	// //set color
-	// gl.uniform4f(colorUniformLocation, 0, 1.0, 0, 1);
-	
-    // // Set the matrix.
-    // gl.uniformMatrix3fv(matrixLocation, false, matrix);
-
-	// gl.clear( gl.COLOR_BUFFER_BIT );
-	// gl.drawArrays( primitiveType, offset, count );
     gl.clear( gl.COLOR_BUFFER_BIT );
 	
     if(renderValue == 1){
+        drawStar();
         drawRectangle();
 	    drawTriangle();
     }else if(renderValue == 2){
         drawTriangle();
+        drawStar();
         drawRectangle();
-    }else{ //Sementara selama blm ada bintang
+    }else {
         drawRectangle();
 	    drawTriangle();
+        drawStar();
     }
 	
 	requestAnimationFrame(render); //refresh
@@ -193,8 +179,7 @@ function drawTriangle() {
 	count = 3; //number of vertices 
 	translation = shapeTranslation[1];
     scale = shapeScale[1];
-	
-	angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
+    angleInRadians = shapeAngleInRad[1];
 
 	setGeometry(gl,1);
 	
@@ -226,8 +211,7 @@ function drawRectangle() {
 	count = 6; //number of vertices 
 	translation = shapeTranslation[2];
     scale = shapeScale[2];
-	
-	// angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
+    angleInRadians = shapeAngleInRad[2];
 
 	setGeometry(gl,2);
 	
@@ -247,6 +231,38 @@ function drawRectangle() {
 
 	//set color
 	gl.uniform4f(colorUniformLocation, 0, 1, 0, 1);
+	
+    // Set the matrix.
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+	//gl.clear( gl.COLOR_BUFFER_BIT );
+	gl.drawArrays( primitiveType, offset, count );
+}
+
+function drawStar() {
+	count = 18; //number of vertices 
+	translation = shapeTranslation[3];
+    scale = shapeScale[3];
+    angleInRadians = shapeAngleInRad[3];
+
+	setGeometry(gl,3);
+	
+	matrix = m3.identity();
+	
+	projectionMatrix = m3.projection(gl.canvas.width, gl.canvas.height);
+	translationMatrix = m3.translation(translation[0], translation[1]);
+    rotationMatrix = m3.rotation(angleInRadians);
+    scaleMatrix = m3.scaling(scale[0], scale[1]);
+	moveOriginMatrix = m3.translation(-65, -90);
+	
+    // Multiply the matrices.
+    matrix = m3.multiply(projectionMatrix, translationMatrix);
+    matrix = m3.multiply(matrix, rotationMatrix);
+	matrix = m3.multiply(matrix, scaleMatrix);
+	matrix = m3.multiply(matrix, moveOriginMatrix);
+
+	//set color
+	gl.uniform4f(colorUniformLocation, 1, 1, 0, 1);
 	
     // Set the matrix.
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
@@ -366,21 +382,29 @@ function setGeometry(gl, shape) {
           gl.bufferData(
             gl.ARRAY_BUFFER,
             new Float32Array([
-                5, 150,
-                75, 0,
-                75, 100,
-
-                75, 100,
-                0, 30,
-                150, 30,
+                100, 50,
+                150, 75,
+                100, 100,
                 
-                //bottom
-                0,150,
-                0,180,
-                100, 180,
-                100, 180,
-                100, 150,
-                0,150,			 
+                100, 100, 
+                100, 50,
+                75, 150,
+
+                75, 150,
+                50, 100,
+                100, 50,
+
+                100, 50,
+                50, 100,
+                0, 75,
+
+                0, 75,
+                50, 50,
+                100, 50,
+
+                100, 50,
+                75, 0,
+                50, 50
                
             ]),
             gl.STATIC_DRAW);
