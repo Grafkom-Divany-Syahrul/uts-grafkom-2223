@@ -9,8 +9,6 @@ var count = 3;
 	
 var colorUniformLocation;
 var angle = 0;
-var angleInRadians = 0;
-var scale = [1.0,1.0]; //default scale
 var matrix;
 var matrixLocation;
 var translationMatrix;
@@ -18,18 +16,26 @@ var rotationMatrix;
 var scaleMatrix;
 var moveOriginMatrix; //move origin to 'center' of F as center of rotation
 var projectionMatrix;
+var renderValue;
 
-var shapesList = [
-    {name: "Triangle", value: 1},
-    {name: "Rectangular", value: 2},
-    {name: "Star", value: 3},
-];
 var shapeTranslation = {
     1 : [75, 100],
     2 : [100, 150],
     3 : [75, 75]
 };
+var shapeScale = {
+    1 : [1.0,1.0],
+    2 : [1.0,1.0],
+    3 : [1.0,1.0]
+};
+var shapeAngle = {
+    1 : 0,
+    2 : 0,
+    3 : 0
+}
 var translation = shapeTranslation[1];
+var scale = shapeScale[1];
+var angleInRadians = shapeAngle[1];
 
 window.onload = function init()
 {
@@ -44,10 +50,14 @@ window.onload = function init()
         removeSelectClass();
         this.classList.add('selected');
         translation = shapeTranslation[this.value];
+        scale = shapeScale[this.value];
+        angleInRadians = shapeAngle[this.value];
         Xvalue.innerHTML = translation[0];
         Yvalue.innerHTML = translation[1];
+        scaleX.innerHTML = scale[0];
+        scaleY.innerHTML = scale[1];
+        renderValue = this.value;
         render();
-
         console.log(this.value);
     }
 
@@ -149,11 +159,59 @@ window.onload = function init()
 function render() 
 {
 	// Compute the matrices
+	// projectionMatrix = m3.projection(gl.canvas.width, gl.canvas.height);
+	// translationMatrix = m3.translation(translation[0], translation[1]);
+    // rotationMatrix = m3.rotation(angleInRadians);
+    // scaleMatrix = m3.scaling(scale[0], scale[1]);
+	// moveOriginMatrix = m3.translation(-50, -75);
+	
+    // // Multiply the matrices.
+    // matrix = m3.multiply(projectionMatrix, translationMatrix);
+    // matrix = m3.multiply(matrix, rotationMatrix);
+	// matrix = m3.multiply(matrix, scaleMatrix);
+	// matrix = m3.multiply(matrix, moveOriginMatrix);
+
+	// //set color
+	// gl.uniform4f(colorUniformLocation, 0, 1.0, 0, 1);
+	
+    // // Set the matrix.
+    // gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+	// gl.clear( gl.COLOR_BUFFER_BIT );
+	// gl.drawArrays( primitiveType, offset, count );
+    gl.clear( gl.COLOR_BUFFER_BIT );
+	
+    if(renderValue == 1){
+        drawRectangle();
+	    drawTriangle();
+    }else if(renderValue == 2){
+        drawTriangle();
+        drawRectangle();
+    }else{ //Sementara selama blm ada bintang
+        drawRectangle();
+	    drawTriangle();
+    }
+	
+	requestAnimationFrame(render); //refresh
+}
+
+function drawTriangle() {
+	count = 3; //number of vertices 
+	translation = shapeTranslation[1];
+    scale = shapeScale[1];
+    angleInRadians = shapeAngle[1];
+	
+	angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
+
+	setGeometry(gl,1);
+	
+	matrix = m3.identity();
+	
 	projectionMatrix = m3.projection(gl.canvas.width, gl.canvas.height);
 	translationMatrix = m3.translation(translation[0], translation[1]);
     rotationMatrix = m3.rotation(angleInRadians);
     scaleMatrix = m3.scaling(scale[0], scale[1]);
-	moveOriginMatrix = m3.translation(-50, -75);
+	moveOriginMatrix = m3.translation(-65, -90);
 	
     // Multiply the matrices.
     matrix = m3.multiply(projectionMatrix, translationMatrix);
@@ -162,14 +220,47 @@ function render()
 	matrix = m3.multiply(matrix, moveOriginMatrix);
 
 	//set color
-	gl.uniform4f(colorUniformLocation, 0, 1.0, 0, 1);
+	gl.uniform4f(colorUniformLocation, 0, 0, 1, 1);
 	
     // Set the matrix.
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
-	gl.clear( gl.COLOR_BUFFER_BIT );
+	//gl.clear( gl.COLOR_BUFFER_BIT );
 	gl.drawArrays( primitiveType, offset, count );
+}
+
+function drawRectangle() {
+	count = 6; //number of vertices 
+	translation = shapeTranslation[2];
+    scale = shapeScale[2];
+    angleInRadians = shapeAngle[2];
 	
+	// angleInRadians = 360 - (angle * Math.PI/180); //rotating counter clockwise
+
+	setGeometry(gl,2);
+	
+	matrix = m3.identity();
+	
+	projectionMatrix = m3.projection(gl.canvas.width, gl.canvas.height);
+	translationMatrix = m3.translation(translation[0], translation[1]);
+    rotationMatrix = m3.rotation(angleInRadians);
+    scaleMatrix = m3.scaling(scale[0], scale[1]);
+	moveOriginMatrix = m3.translation(-65, -90);
+	
+    // Multiply the matrices.
+    matrix = m3.multiply(projectionMatrix, translationMatrix);
+    matrix = m3.multiply(matrix, rotationMatrix);
+	matrix = m3.multiply(matrix, scaleMatrix);
+	matrix = m3.multiply(matrix, moveOriginMatrix);
+
+	//set color
+	gl.uniform4f(colorUniformLocation, 0, 1, 0, 1);
+	
+    // Set the matrix.
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+	//gl.clear( gl.COLOR_BUFFER_BIT );
+	gl.drawArrays( primitiveType, offset, count );
 }
 
 
@@ -250,42 +341,6 @@ var m3 = {
   },
 };
 
-// Fill the buffer with the values that define a letter 'F'.
-function setGeometry(gl) {
-  gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        0, 75,
-        75, 0,
-        150, 75,
-        //   // left column
-        //   0, 0,
-        //   30, 0,
-        //   0, 150,
-        //   0, 150,
-        //   30, 0,
-        //   30, 150,
- 
-        //   // top rung
-        //   30, 0,
-        //   100, 0,
-        //   30, 30,
-        //   30, 30,
-        //   100, 0,
-        //   100, 30,
- 
-        //   // middle rung
-        //   30, 60,
-        //   67, 60,
-        //   30, 90,
-        //   30, 90,
-        //   67, 60,
-        //   67, 90,
-      ]),
-      gl.STATIC_DRAW);
-}
-
-/*
 function setGeometry(gl, shape) {
     switch (shape) {
         case 1:                     // Fill the buffer with the values that define a Triangle.
@@ -341,4 +396,3 @@ function setGeometry(gl, shape) {
         break;
     }
   }
-*/
