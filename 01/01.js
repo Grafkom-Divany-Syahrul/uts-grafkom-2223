@@ -19,6 +19,12 @@ var moveOriginMatrix;
 var projectionMatrix;
 var renderValue = 1;
 
+let selectedObject = null;
+let isDragging = false;
+let lastUpdatedPosition = { x: 0, y: 0 };
+let updateThreshold = 20; // Ambang batas dalam piksel, sesuaikan sesuai kebutuhan
+
+
 var shapeTranslation = {
     1: [75, 100],
     2: [100, 150],
@@ -45,6 +51,10 @@ var angleInRadians = shapeAngleInRad[1];
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
+
+    canvas.addEventListener('mousedown', onMouseDown, false);
+    canvas.addEventListener('mousemove', onMouseMove, false);
+    canvas.addEventListener('mouseup', onMouseUp, false);
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
@@ -93,7 +103,6 @@ window.onload = function init() {
     setGeometry(gl);
 
     // Associate out shader variables with our data buffer
-
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
@@ -109,7 +118,7 @@ window.onload = function init() {
     //Update  X according to X slider
     var Xvalue = document.getElementById("Xvalue");
     Xvalue.innerHTML = translation[0];
-    document.getElementById("sliderX").onchange = function (event) {
+    document.getElementById("sliderX").oninput  = function (event) {
         translation[0] = event.target.value;
         Xvalue.innerHTML = translation[0];
         requestAnimationFrame(render);
@@ -118,7 +127,7 @@ window.onload = function init() {
     //Update Y according to Y slider
     var Yvalue = document.getElementById("Yvalue");
     Yvalue.innerHTML = translation[1];
-    document.getElementById("sliderY").onchange = function (event) {
+    document.getElementById("sliderY").oninput  = function (event) {
         translation[1] = event.target.value;
         Yvalue.innerHTML = translation[1];
         requestAnimationFrame(render);
@@ -128,7 +137,7 @@ window.onload = function init() {
     //Update rotation angle according to angle slider
     var angleValue = document.getElementById("Avalue");
     angleValue.innerHTML = angle;
-    document.getElementById("sliderA").onchange = function (event) {
+    document.getElementById("sliderA").oninput  = function (event) {
         var angleInDegrees = 360 - event.target.value;
         angleInRadians[0] = angleInDegrees * Math.PI / 180; //convert degree to radian
         angleValue.innerHTML = 360 - angleInDegrees;
@@ -139,7 +148,7 @@ window.onload = function init() {
     //Update scaleX according to scaleX slider
     var scaleX = document.getElementById("scaleX");
     scaleX.innerHTML = scale[0];
-    document.getElementById("sliderscaleX").onchange = function (event) {
+    document.getElementById("sliderscaleX").oninput  = function (event) {
         scale[0] = event.target.value;
         scaleX.innerHTML = scale[0];
         requestAnimationFrame(render);
@@ -149,7 +158,7 @@ window.onload = function init() {
     //Update scaleY according to scaleY slider
     var scaleY = document.getElementById("scaleY");
     scaleY.innerHTML = scale[1];
-    document.getElementById("sliderscaleY").onchange = function (event) {
+    document.getElementById("sliderscaleY").oninput  = function (event) {
         scale[1] = event.target.value;
         scaleY.innerHTML = scale[1];
         requestAnimationFrame(render);
@@ -158,12 +167,48 @@ window.onload = function init() {
     // Update rotation speed according to rotation speed slider
     var rotationSpeedValue = document.getElementById("rotationSpeedValue");
     rotationSpeedValue.innerHTML = 0;
-    document.getElementById("rotationSpeed").onchange = function (event) {
+    document.getElementById("rotationSpeed").oninput  = function (event) {
     var speed = parseInt(event.target.value)*50;
     rotationSpeedValue.innerHTML = speed;
     shapeRotationSpeed[renderValue] = speed;
     requestAnimationFrame(render);
     };
+
+    function onMouseDown(event) {
+        // Konversi posisi mouse ke koordinat kanvas
+        let x = event.clientX - canvas.getBoundingClientRect().left;
+        let y = event.clientY - canvas.getBoundingClientRect().top;
+
+        selectedObject = renderValue;
+        if (selectedObject) {
+            isDragging = true;
+        }
+    }
+
+    function onMouseMove(event) {
+        if (isDragging && selectedObject) {
+            let x = event.clientX - canvas.getBoundingClientRect().left;
+            let y = event.clientY - canvas.getBoundingClientRect().top;
+
+            // count the distance between the last updated position and the current position to avoid updating the position too often
+            let dx = x - lastUpdatedPosition.x;
+            let dy = y - lastUpdatedPosition.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance >= updateThreshold) {
+                translation[0] = x;
+                translation[1] = y;
+                lastUpdatedPosition = { x: x, y: y };
+                requestAnimationFrame(render);
+            }
+        }
+    }
+
+    
+    function onMouseUp(event) {
+        isDragging = false;
+        selectedObject = 0;
+    }
 
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render); //default render
@@ -183,7 +228,6 @@ function render(timestamp) {
     shapeAngleInRad[2][0] += shapeRotationSpeed[2] * Math.PI / 180 * deltaTime;
     shapeAngleInRad[3][0] += shapeRotationSpeed[3] * Math.PI / 180 * deltaTime;
 
-    // Kode render yang ada (tanpa perubahan)
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     if (renderValue == 1) {
@@ -200,7 +244,9 @@ function render(timestamp) {
         drawStar();
     }
 
-    requestAnimationFrame(render); //refresh
+    setTimeout(
+        function (){requestAnimationFrame(render);}, 32
+    ); //refresh
 }
 
 function drawTriangle() {
@@ -379,7 +425,7 @@ var m3 = {
 
 function setGeometry(gl, shape) {
     switch (shape) {
-        case 1:                     // Fill the buffer with the values that define a Triangle.
+        case 1:                     
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -390,7 +436,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 2: 				// Fill the buffer with the values that define a Rectangle.
+        case 2: 				
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -406,7 +452,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 3: 				//TODO: Fill the buffer with the values that define a Star.
+        case 3: 				
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
