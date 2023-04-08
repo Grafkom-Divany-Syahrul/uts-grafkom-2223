@@ -6,6 +6,7 @@ var gl;
 var primitiveType;
 var offset = 0;
 var count = 3;
+var previousTimestamp = null;
 
 var colorUniformLocation;
 var angle = 0;
@@ -32,7 +33,12 @@ var shapeAngleInRad = {
     1: [0],
     2: [0],
     3: [0]
-}
+};
+var shapeRotationSpeed = {
+    1: 0,
+    2: 0,
+    3: 0
+};
 var translation = shapeTranslation[1];
 var scale = shapeScale[1];
 var angleInRadians = shapeAngleInRad[1];
@@ -57,7 +63,7 @@ window.onload = function init() {
         scaleY.innerHTML = scale[1];
         angleValue.innerHTML = angleInRadians * 180 / Math.PI;
         renderValue = this.value;
-        render();
+        requestAnimationFrame(render);
     }
 
     var removeSelectClass = function () {
@@ -106,7 +112,7 @@ window.onload = function init() {
     document.getElementById("sliderX").onchange = function (event) {
         translation[0] = event.target.value;
         Xvalue.innerHTML = translation[0];
-        render();
+        requestAnimationFrame(render);
     };
 
     //Update Y according to Y slider
@@ -115,7 +121,7 @@ window.onload = function init() {
     document.getElementById("sliderY").onchange = function (event) {
         translation[1] = event.target.value;
         Yvalue.innerHTML = translation[1];
-        render();
+        requestAnimationFrame(render);
     };
 
 
@@ -126,7 +132,7 @@ window.onload = function init() {
         var angleInDegrees = 360 - event.target.value;
         angleInRadians[0] = angleInDegrees * Math.PI / 180; //convert degree to radian
         angleValue.innerHTML = 360 - angleInDegrees;
-        render();
+        requestAnimationFrame(render);
     };
 
 
@@ -136,7 +142,7 @@ window.onload = function init() {
     document.getElementById("sliderscaleX").onchange = function (event) {
         scale[0] = event.target.value;
         scaleX.innerHTML = scale[0];
-        render();
+        requestAnimationFrame(render);
     };
 
 
@@ -146,14 +152,38 @@ window.onload = function init() {
     document.getElementById("sliderscaleY").onchange = function (event) {
         scale[1] = event.target.value;
         scaleY.innerHTML = scale[1];
-        render();
+        requestAnimationFrame(render);
+    };
+
+    // Update rotation speed according to rotation speed slider
+    var rotationSpeedValue = document.getElementById("rotationSpeedValue");
+    rotationSpeedValue.innerHTML = 0;
+    document.getElementById("rotationSpeed").onchange = function (event) {
+    var speed = parseInt(event.target.value)*50;
+    rotationSpeedValue.innerHTML = speed;
+    shapeRotationSpeed[renderValue] = speed;
+    requestAnimationFrame(render);
     };
 
     primitiveType = gl.TRIANGLES;
-    render(); //default render
+    requestAnimationFrame(render); //default render
 }
 
-function render() {
+function render(timestamp) {
+    if (previousTimestamp === null) {
+        previousTimestamp = timestamp;
+    }
+
+    // Hitung perbedaan waktu antara frame rendering (deltaTime) dalam detik
+    var deltaTime = (timestamp - previousTimestamp) / 1000;
+    previousTimestamp = timestamp;
+
+    // Update sudut rotasi berdasarkan kecepatan rotasi dan deltaTime
+    shapeAngleInRad[1][0] += shapeRotationSpeed[1] * Math.PI / 180 * deltaTime;
+    shapeAngleInRad[2][0] += shapeRotationSpeed[2] * Math.PI / 180 * deltaTime;
+    shapeAngleInRad[3][0] += shapeRotationSpeed[3] * Math.PI / 180 * deltaTime;
+
+    // Kode render yang ada (tanpa perubahan)
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     if (renderValue == 1) {
