@@ -34,7 +34,7 @@
   color: #085A70;
 }
 
-#slidercontainer{
+#slidercontainer, #notes {
   background-color: #16A4A8;
   border-radius: 10px;
   justify-content: center;
