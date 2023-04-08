@@ -11,6 +11,7 @@ Membuat sebuah game 2D yang menyediakan 3 objek yaitu: Segitiga, Persegi Panjang
 - [ ] Modifikasi UI
 ## Current Problems
 (Check if solved)
+- [ ] Slidernya membesar mengecil jumlah angkanya (Pengennya konsisten)
 - [x] Rotasi tidak berjalan
 - [x] Transformasi scale masih mengubah untuk semua objek (dipilih atau tidak dipilih)
 ## Pengembangan lebih lanjut
