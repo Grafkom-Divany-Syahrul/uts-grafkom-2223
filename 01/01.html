@@ -4,7 +4,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="../Common/layout.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link href="../Common/layout.css" rel="stylesheet">
     <title>UTS-01</title>
 
     <!-- Modification from transform-letterF.html/JS -->
@@ -48,48 +50,60 @@ main()
 </head>
 
 <body>
-
-    <div class="header">
-        <h2>Animasi Interaktif</h2>
-    </div>
-
-    <div class="row">
-        <div class="leftcolumn">
-            <canvas id="gl-canvas" width="800" height="600">
-                Oops ... your browser doesn't support the HTML5 canvas element
-            </canvas>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Animasi Interaktif</span>
         </div>
-        <div id="slidercontainer" class="rightcolumn">
-            <div>
-                X <input id="sliderX" type="range" min="0" max="800" step="1" value="0" /> <span id="Xvalue"> </span>
-                <br>
-                Y <input id="sliderY" type="range" min="0" max="600" step="1" value="0" /> <span id="Yvalue"> </span>
-                <br>
-                Angle <input id="sliderA" type="range" max="360" value="0" /> <span id="Avalue"> </span>
-                <br>
-                Scale-X <input id="sliderscaleX" type="range" min="1" max="5" step="0.1" value="1.0" /> <span
-                    id="scaleX"> </span>
-                <br>
-                Scale-Y <input id="sliderscaleY" type="range" min="1" max="5" step="0.1" value="1.0" /> <span
-                    id="scaleY"> </span>
+    </nav>
+    <!-- GAME -->
+    <div class="container-fluid">
+        <div class="d-flex flex-row mb-3" id="page1">
+            <div class="d-flex flex-column mb-3">
+                <canvas id="gl-canvas" width="800" height="600">
+                    Oops ... your browser doesn't support the HTML5 canvas element
+                </canvas>
+            </div>
+            <div class="d-flex flex-column mb-3" id="transform-panel">
+                <div id="slidercontainer" class="d-flex flex-column mb-3">
+                    <div>
+                        X <input id="sliderX" type="range" min="0" max="800" step="1" value="0" /> <span id="Xvalue">
+                        </span>
+                        <br>
+                        Y <input id="sliderY" type="range" min="0" max="600" step="1" value="0" /> <span id="Yvalue">
+                        </span>
+                        <br>
+                        Angle <input id="sliderA" type="range" max="360" value="0" /> <span id="Avalue"> </span>
+                        <br>
+                        Scale-X <input id="sliderscaleX" type="range" min="1" max="5" step="0.1" value="1.0" /> <span
+                            id="scaleX"> </span>
+                        <br>
+                        Scale-Y <input id="sliderscaleY" type="range" min="1" max="5" step="0.1" value="1.0" /> <span
+                            id="scaleY"> </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="objSelectBtnGrp" class="d-flex flex-column mb-3">
+                        <p>Choose Object to Transform</p>
+                        <div class="d-flex flex-row mb-3">
+                            <button class="button selected" value="1">Triangle
+                            </button>
+                            <button class="button" value="2">Rectangular</button>
+                            <button class="button" value="3">Star</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div id="objSelectBtnGrp" class="rightcolumn">
-            <p>Choose Object to Transform</p>
-            <div class="menu">
-                <button class="button selected" value="1">Triangle
-                </button>
-                <button class="button" value="2">Rectangular</button>
-                <button class="button" value="3">Star</button>
-            </div>
-        </div>
-    </div>
+    <!-- FOOTER -->
     <div class="footer">
-        <h2>Grafika Komputer - Fasilkom UI</h2>
+        <h6>UTS Grafika Komputer - Fasilkom UI</h6>
+        <p>Divany Harryndira - Syahrul Apriansyah</p>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
 </body>
 
 </html>
