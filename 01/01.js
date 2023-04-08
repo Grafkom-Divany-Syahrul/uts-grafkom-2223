@@ -19,6 +19,9 @@ var moveOriginMatrix;
 var projectionMatrix;
 var renderValue = 1;
 
+let selectedObject = null;
+let isDragging = false;
+
 var shapeTranslation = {
     1: [75, 100],
     2: [100, 150],
@@ -45,6 +48,10 @@ var angleInRadians = shapeAngleInRad[1];
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
+
+    canvas.addEventListener('mousedown', onMouseDown, false);
+    canvas.addEventListener('mousemove', onMouseMove, false);
+    canvas.addEventListener('mouseup', onMouseUp, false);
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
@@ -165,6 +172,33 @@ window.onload = function init() {
     requestAnimationFrame(render);
     };
 
+    function onMouseDown(event) {
+        // Konversi posisi mouse ke koordinat kanvas
+        let x = event.clientX - canvas.getBoundingClientRect().left;
+        let y = event.clientY - canvas.getBoundingClientRect().top;
+
+        selectedObject = renderValue;
+        if (selectedObject) {
+            isDragging = true;
+        }
+    }
+
+    function onMouseMove(event) {
+        if (isDragging && selectedObject) {
+            let x = event.clientX - canvas.getBoundingClientRect().left;
+            let y = event.clientY - canvas.getBoundingClientRect().top;
+
+            translation[0] = x;
+            translation[1] = y;
+            requestAnimationFrame(render);
+        }
+    }
+    
+    function onMouseUp(event) {
+        isDragging = false;
+        selectedObject = 0;
+    }
+
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render); //default render
 }
@@ -183,7 +217,6 @@ function render(timestamp) {
     shapeAngleInRad[2][0] += shapeRotationSpeed[2] * Math.PI / 180 * deltaTime;
     shapeAngleInRad[3][0] += shapeRotationSpeed[3] * Math.PI / 180 * deltaTime;
 
-    // Kode render yang ada (tanpa perubahan)
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     if (renderValue == 1) {
@@ -379,7 +412,7 @@ var m3 = {
 
 function setGeometry(gl, shape) {
     switch (shape) {
-        case 1:                     // Fill the buffer with the values that define a Triangle.
+        case 1:                     
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -390,7 +423,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 2: 				// Fill the buffer with the values that define a Rectangle.
+        case 2: 				
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -406,7 +439,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 3: 				//TODO: Fill the buffer with the values that define a Star.
+        case 3: 				
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
