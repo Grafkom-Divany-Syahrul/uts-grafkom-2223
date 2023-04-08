@@ -118,7 +118,7 @@ window.onload = function init() {
     //Update  X according to X slider
     var Xvalue = document.getElementById("Xvalue");
     Xvalue.innerHTML = translation[0];
-    document.getElementById("sliderX").oninput = function (event) {
+    document.getElementById("sliderX").oninput  = function (event) {
         translation[0] = event.target.value;
         Xvalue.innerHTML = translation[0];
         requestAnimationFrame(render);
@@ -127,7 +127,7 @@ window.onload = function init() {
     //Update Y according to Y slider
     var Yvalue = document.getElementById("Yvalue");
     Yvalue.innerHTML = translation[1];
-    document.getElementById("sliderY").oninput = function (event) {
+    document.getElementById("sliderY").oninput  = function (event) {
         translation[1] = event.target.value;
         Yvalue.innerHTML = translation[1];
         requestAnimationFrame(render);
@@ -137,7 +137,7 @@ window.onload = function init() {
     //Update rotation angle according to angle slider
     var angleValue = document.getElementById("Avalue");
     angleValue.innerHTML = angle;
-    document.getElementById("sliderA").oninput = function (event) {
+    document.getElementById("sliderA").oninput  = function (event) {
         var angleInDegrees = 360 - event.target.value;
         angleInRadians[0] = angleInDegrees * Math.PI / 180; //convert degree to radian
         angleValue.innerHTML = 360 - angleInDegrees;
@@ -148,7 +148,7 @@ window.onload = function init() {
     //Update scaleX according to scaleX slider
     var scaleX = document.getElementById("scaleX");
     scaleX.innerHTML = scale[0];
-    document.getElementById("sliderscaleX").oninput = function (event) {
+    document.getElementById("sliderscaleX").oninput  = function (event) {
         scale[0] = event.target.value;
         scaleX.innerHTML = scale[0];
         requestAnimationFrame(render);
@@ -158,7 +158,7 @@ window.onload = function init() {
     //Update scaleY according to scaleY slider
     var scaleY = document.getElementById("scaleY");
     scaleY.innerHTML = scale[1];
-    document.getElementById("sliderscaleY").oninput = function (event) {
+    document.getElementById("sliderscaleY").oninput  = function (event) {
         scale[1] = event.target.value;
         scaleY.innerHTML = scale[1];
         requestAnimationFrame(render);
@@ -167,7 +167,7 @@ window.onload = function init() {
     // Update rotation speed according to rotation speed slider
     var rotationSpeedValue = document.getElementById("rotationSpeedValue");
     rotationSpeedValue.innerHTML = 0;
-    document.getElementById("rotationSpeed").oninput = function (event) {
+    document.getElementById("rotationSpeed").oninput  = function (event) {
     var speed = parseInt(event.target.value)*50;
     rotationSpeedValue.innerHTML = speed;
     shapeRotationSpeed[renderValue] = speed;
@@ -244,7 +244,9 @@ function render(timestamp) {
         drawStar();
     }
 
-    requestAnimationFrame(render); //refresh
+    setTimeout(
+        function (){requestAnimationFrame(render);}, 32
+    ); //refresh
 }
 
 function drawTriangle() {
