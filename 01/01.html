@@ -66,23 +66,23 @@ main()
     <div class="container-fluid" id="page1">
         <div class="d-flex flex-row mb-0" id="page1-layout">
             <div class="d-flex flex-column mb-3">
-                <canvas id="gl-canvas" width="800" height="600">
+                <canvas id="gl-canvas" width="800" height="600" class="shadow-sm rounded">
                     Oops ... your browser doesn't support the HTML5 canvas element
                 </canvas>
             </div>
             <div class="d-flex flex-fill flex-column mb-3 p-2" id="transform-panel">
                 <div id="btnGrp">
-                    <div id="objSelectBtnGrp" class="d-flex flex-column p-3 text-center">
+                    <div id="objSelectBtnGrp" class="d-flex flex-column p-3 text-center shadow-sm rounded">
                         <p>Choose Object to Transform</p>
                         <div class="d-flex flex-row justify-content-center" id="buttons01">
-                            <button class="btn button selected" value="1">Triangle
+                            <button class="btn button selected shadow-sm rounded" value="1">Triangle
                             </button>
-                            <button class="btn button" value="2">Rectangular</button>
-                            <button class="btn button" value="3">Star</button>
+                            <button class="btn button shadow-sm rounded" value="2">Rectangular</button>
+                            <button class="btn button shadow-sm rounded" value="3">Star</button>
                         </div>
                     </div>
                 </div>
-                <div id="slidercontainer" class="d-flex flex-column mt-3 p-4">
+                <div id="slidercontainer" class="d-flex flex-column mt-3 p-4 shadow-sm rounded">
                     <div>
                         <label for="sliderX">Translation-X</label>
                         <div class="d-flex flex-row mb-3">
@@ -98,41 +98,61 @@ main()
                     <div>
                         <label for="sliderY">Translation-Y</label>
                         <div class="d-flex flex-row mb-3">
-                            <input class="form-range" id="sliderY" type="range" min="0" max="600" step="1" value="0" />
-                            <span id="Yvalue"></span>
+                            <div class="d-flex flex-column flex-fill">
+                                <input class="form-range pe-3" id="sliderY" type="range" min="0" max="600" step="1" value="0" />
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span id="Yvalue"></span>
+                            </div>
                         </div>
 
                     </div>
                     <div>
                         <label for="sliderA">Angle</label>
                         <div class="d-flex flex-row mb-3">
-                            <input class="form-range" id="sliderA" type="range" max="360" value="0" />
-                            <span id="Avalue"></span>
+                            <div class="d-flex flex-column flex-fill">
+                                <input class="form-range pe-3" id="sliderA" type="range" max="360" value="0" />
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span id="Avalue"></span>
+                            </div>
                         </div>
 
                     </div>
                     <div>
                         <label for="sliderscaleX">Scale-X</label>
                         <div class="d-flex flex-row mb-3">
-                            <input class="form-range" id="sliderscaleX" type="range" min="1" max="5" step="0.1"
+                            <div class="d-flex flex-column flex-fill">
+                                <input class="form-range pe-3" id="sliderscaleX" type="range" min="1" max="5" step="0.1"
                                 value="1.0" />
-                            <span id="scaleX"> </span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span id="scaleX"> </span>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label for="sliderscaleY">Scale-Y</label>
                         <div class="d-flex flex-row mb-3">
-                            <input class="form-range" id="sliderscaleY" type="range" min="1" max="5" step="0.1"
+                            <div class="d-flex flex-column flex-fill">
+                                <input class="form-range pe-3" id="sliderscaleY" type="range" min="1" max="5" step="0.1"
                                 value="1.0" />
-                            <span id="scaleY"> </span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span id="scaleY"> </span>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label for="rotationSpeed">Rotation Speed</label>
                         <div class="d-flex flex-row mb-0">
-                            <input class="form-range" id="rotationSpeed" type="range" min="-50" max="50" step="1"
+                            <div class="d-flex flex-column flex-fill">
+                                <input class="form-range pe-3" id="rotationSpeed" type="range" min="-50" max="50" step="1"
                                 value="0" />
-                            <span id="rotationSpeedValue">0</span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span id="rotationSpeedValue">0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
