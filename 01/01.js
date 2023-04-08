@@ -21,6 +21,9 @@ var renderValue = 1;
 
 let selectedObject = null;
 let isDragging = false;
+let lastUpdatedPosition = { x: 0, y: 0 };
+let updateThreshold = 20; // Ambang batas dalam piksel, sesuaikan sesuai kebutuhan
+
 
 var shapeTranslation = {
     1: [75, 100],
@@ -100,7 +103,6 @@ window.onload = function init() {
     setGeometry(gl);
 
     // Associate out shader variables with our data buffer
-
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
@@ -188,11 +190,20 @@ window.onload = function init() {
             let x = event.clientX - canvas.getBoundingClientRect().left;
             let y = event.clientY - canvas.getBoundingClientRect().top;
 
-            translation[0] = x;
-            translation[1] = y;
-            requestAnimationFrame(render);
+            // count the distance between the last updated position and the current position to avoid updating the position too often
+            let dx = x - lastUpdatedPosition.x;
+            let dy = y - lastUpdatedPosition.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance >= updateThreshold) {
+                translation[0] = x;
+                translation[1] = y;
+                lastUpdatedPosition = { x: x, y: y };
+                requestAnimationFrame(render);
+            }
         }
     }
+
     
     function onMouseUp(event) {
         isDragging = false;
