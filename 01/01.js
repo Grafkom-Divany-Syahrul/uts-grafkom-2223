@@ -229,6 +229,7 @@ function render(timestamp) {
     shapeAngleInRad[3][0] += shapeRotationSpeed[3] * Math.PI / 180 * deltaTime;
 
     gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearColor(0.83, 0.99, 0.91, 1);
 
     if (renderValue == 1) {
         drawStar();
@@ -272,7 +273,7 @@ function drawTriangle() {
     matrix = m3.multiply(matrix, moveOriginMatrix);
 
     //set color
-    gl.uniform4f(colorUniformLocation, 0, 0, 1, 1);
+    gl.uniform4f(colorUniformLocation, 1, 0.22, 0.33, 1);
 
     // Set the matrix.
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
@@ -304,7 +305,7 @@ function drawRectangle() {
     matrix = m3.multiply(matrix, moveOriginMatrix);
 
     //set color
-    gl.uniform4f(colorUniformLocation, 0, 1, 0, 1);
+    gl.uniform4f(colorUniformLocation, 0.38, 0.77, 0.14, 1);
 
     // Set the matrix.
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
@@ -336,7 +337,7 @@ function drawStar() {
     matrix = m3.multiply(matrix, moveOriginMatrix);
 
     //set color
-    gl.uniform4f(colorUniformLocation, 1, 1, 0, 1);
+    gl.uniform4f(colorUniformLocation, 1, 0.73, 0.06, 1);
 
     // Set the matrix.
     gl.uniformMatrix3fv(matrixLocation, false, matrix);

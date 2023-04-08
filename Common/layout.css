@@ -3,8 +3,18 @@
 }
 .navbar-brand{
   color: #D4FDE7;
+  margin: 0;
 }
-
+.navbar-brand.mb-0.h1{
+  font-family: 'Bungee Inline', cursive;
+  font-size: x-large;
+}
+.navbar-brand.mb-0.h1:hover{
+  color: #085A70;
+}
+canvas{
+  border-radius: 10px;
+}
 #page1{
   background-color: #0E7987;
   color: #D4FDE7;
