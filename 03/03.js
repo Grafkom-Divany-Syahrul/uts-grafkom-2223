@@ -7,49 +7,36 @@ var primitiveType;
 var offset = 0;
 var count = 108;
 
-var translation = [300, 150, 0]; //top-left-depth of F
+// Transformasi objek
+var translation = [300, 150, 0]; // top-left-depth dari objek F
 var rotation = [0, 0, 0];
-var rotationO = [0, 0, 0];
+var rotationO = [0, 0, 0]; // rotasi objek O
 var centerO = [0, 0, 0];
 var centerH = [0, 0, 0];
-var scale = [1.0, 1.0, 1.0]; //default scale
+var scale = [1.0, 1.0, 1.0]; // skala default
 
+// Kamera dan proyeksi
 var fieldOfViewRadians = degToRad(60);
-// Compute the projection matrix
 var aspect;
 var zNear = 1;
 var zFar = 2000;
 var isDefaultCamera = true;
 var cameraFocus = 0;
 
+// Revolusi Oksigen
 var oxygenRevolution = [
     [degToRad(-30), degToRad(30)],
     [degToRad(-150), degToRad(150)],
 ];
 var oxygenRevSpeed = [0.05, degToRad(30) / 100];
 
-var angleInRadians = 0;
-
+// Matriks dan buffer
 var matrix;
 var matrixLocation;
 var positionLocation;
 var colorLocation;
-var translationMatrix;
-var rotationMatrix;
-var scaleMatrix;
-var projectionMatrix;
 var positionBuffers = {};
 var colorBuffers = {};
-
-var revolutionH1 = 1;
-var revolutionH2 = 1;
-
-var orbitRadiusH1 = 130;
-var orbitRadiusH2 = 130;
-var orbitAngleH1 = 0;
-var orbitAngleH2 = 0;
-var orbitSpeedH1 = 2; // Kecepatan sudut dalam derajat per frame
-var orbitSpeedH2 = 2;
 
 // 0 = O, 1 = h1, 2 = h2
 var shapeTranslation = {
@@ -66,6 +53,7 @@ window.onload = function init() {
 
     aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
 
+    // Tombol interaksi
     var button = document.getElementsByClassName("button");
     var addSelectClass = function () {
         removeSelectClass();
@@ -82,20 +70,18 @@ window.onload = function init() {
         button[i].addEventListener("click", addSelectClass);
     }
 
-    //
-    //  Configure WebGL
-    //
+    // Konfigurasi WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.83, 0.99, 0.91, 1.0);
 
-    gl.enable(gl.CULL_FACE); //enable depth buffer
+    gl.enable(gl.CULL_FACE); // mengaktifkan buffer kedalaman
     gl.enable(gl.DEPTH_TEST);
 
-    //  Load shaders and initialize attribute buffers
+    // Muat shader dan inisialisasi buffer atribut
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
-    // Load the data into the GPU
+    // Muat data ke GPU
     positionBuffers = {
         1: gl.createBuffer(),
         2: gl.createBuffer()
@@ -124,6 +110,7 @@ window.onload = function init() {
 
     rotation = [degToRad(15), degToRad(11), degToRad(12)];
 
+// Tambahkan event listener untuk tombol tampilan
     document.getElementById("defaultViewButton").addEventListener("click", function () {
         isDefaultCamera = true;
     });
@@ -143,7 +130,6 @@ window.onload = function init() {
         cameraFocus = 2
     });
 
-
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render);
 }
@@ -153,18 +139,17 @@ function render() {
     gl.enable(gl.CULL_FACE); //enable depth buffer
     gl.enable(gl.DEPTH_TEST);
 
-    // Update rotationO
+    /// Perbarui rotationO
     var angleInDegrees = 30;
     var angleInRadians = degToRad(angleInDegrees);
-    rotationO[1] += angleInRadians / 10;// Rotate counter-clockwise around the Z-axis
+    rotationO[1] += angleInRadians / 10; // Putar berlawanan arah jarum jam di sekitar sumbu Z
     rotation[1] -= 0.05;
 
+    drawO(); // Gambar objek 'O'
+    drawH(2); // Gambar objek 'H'
+    drawH(1); // Gambar objek 'H'
 
-    drawO(); // Draw the 'O' object
-    drawH(2); // Draw the 'H' object
-    drawH(1); // Draw the 'H' object
-
-    requestAnimationFrame(render); //refresh
+    requestAnimationFrame(render); // refresh
 }
 
 function radToDeg(r) {
@@ -197,16 +182,15 @@ function drawO() {
         vec3(0, 1, 0)
     );
 
-    // Make a view matrix from the camera matrix
+    // Buat viewMatrix dari cameraMatrix
     var viewMatrix = m4.inverse(cameraMatrix);
 
-
-    // Compute a view projection matrix
+    // Hitung viewProjectionMatrix dari projectionMatrix dan viewMatrix
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
 
-    // enable or disable default camera
+    // aktifkan atau nonaktifkan kamera default
     if (!isDefaultCamera) {
         matrix = viewProjectionMatrix;
     }
@@ -289,7 +273,6 @@ function drawH(numH) {
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
     gl.drawArrays(primitiveType, offset, 108); // Update count value
 }
-
 
 var m4 = {
 
