@@ -55,7 +55,7 @@ window.onload = function init() {
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-    setGeometry(gl, 1);
+    setGeometry(gl, 2);
 
     var colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -66,28 +66,28 @@ window.onload = function init() {
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     gl.enableVertexAttribArray(colorLocation);
 
-    setColors(gl, 1);
-
-    var positionBuffer2 = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
-
-    var positionLocation2 = gl.getAttribLocation(program, "a_position");
-    gl.vertexAttribPointer(positionLocation2, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(positionLocation2);
-
-    setGeometry(gl, 2);
-
-
-    var colorBuffer2 = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
-
-    // Associate out shader variables with our data buffer
-
-    var colorLocation2 = gl.getAttribLocation(program, "a_color");
-    gl.vertexAttribPointer(colorLocation2, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-    gl.enableVertexAttribArray(colorLocation2);
-
     setColors(gl, 2);
+
+    // var positionBuffer2 = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
+
+    // var positionLocation2 = gl.getAttribLocation(program, "a_position");
+    // gl.vertexAttribPointer(positionLocation2, 3, gl.FLOAT, false, 0, 0);
+    // gl.enableVertexAttribArray(positionLocation2);
+
+    // setGeometry(gl, 2);
+
+
+    // var colorBuffer2 = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
+
+    // // Associate out shader variables with our data buffer
+
+    // var colorLocation2 = gl.getAttribLocation(program, "a_color");
+    // gl.vertexAttribPointer(colorLocation2, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    // gl.enableVertexAttribArray(colorLocation2);
+
+    // setColors(gl, 2);
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
@@ -202,7 +202,7 @@ function render() {
     gl.enable(gl.CULL_FACE); //enable depth buffer
     gl.enable(gl.DEPTH_TEST);
     // gl.drawArrays(primitiveType, offset, count);
-    drawO();
+    // drawO();
     drawH(2);
 
     requestAnimationFrame(render); //refresh
@@ -221,11 +221,11 @@ function drawO() {
     count = 120;
     translation = shapeTranslation[1];
 
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    // gl.useProgram(program);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     setGeometry(gl, 1);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     setColors(gl, 1);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
@@ -243,10 +243,11 @@ function drawH(numH) {
     count = 108;
     translation = shapeTranslation[numH];
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
+    // gl.useProgram(program);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
     setGeometry(gl, 2);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
     setColors(gl, 2);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);

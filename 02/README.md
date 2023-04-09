@@ -8,4 +8,4 @@ Modifikasi algoritma midpointline untuk mengakomodasi semua kemiringan dan buat 
 - [x] Buat skalanya tidak terlalu besar
 ## Current Problems
 (Check if solved)
-- [ ] Styling dropdown sama input titik masih jelek
+- [x] Styling dropdown sama input titik masih jelek

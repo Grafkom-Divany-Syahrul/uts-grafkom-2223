@@ -5,7 +5,7 @@ var gl;
 
 var primitiveType;
 var offset = 0;
-var count = 120;
+var count = 108;
 
 
 var translation = [300, 150, 0]; //top-left-depth of F
@@ -16,16 +16,20 @@ var angleInRadians = 0;
 
 var matrix;
 var matrixLocation;
+var positionLocation;
+var colorLocation;
 var translationMatrix;
 var rotationMatrix;
 var scaleMatrix;
 var projectionMatrix;
+var positionBuffers = {};
+var colorBuffers = {};
 
 // 1 = O, 2 = h1, 3 = h2
 var shapeTranslation = {
-    1: [300, 150, 0],
-    2: [100, 50, 0],
-    3: [300, 150, 0],
+    1: [370, 150, 0],
+    2: [170, 50, 0],
+    3: [580, 50, 0],
 }
 
 window.onload = function init() {
@@ -48,144 +52,143 @@ window.onload = function init() {
     gl.useProgram(program);
 
     // Load the data into the GPU
-    var positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    positionBuffers = {
+        1: gl.createBuffer(),
+        2: gl.createBuffer()
+    };
 
-    var positionLocation = gl.getAttribLocation(program, "a_position");
+    colorBuffers = {
+        1: gl.createBuffer(),
+        2: gl.createBuffer()
+    };
+
+    setGeometry(gl, 1, positionBuffers[1]);
+    setGeometry(gl, 2, positionBuffers[2]);
+
+    setColors(gl, 1, colorBuffers[1]);
+    setColors(gl, 2, colorBuffers[2]);
+
+    positionLocation = gl.getAttribLocation(program, "a_position");
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-    setGeometry(gl, 1 );
-
-
-    var colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-    // Associate out shader variables with our data buffer
-
-    var colorLocation = gl.getAttribLocation(program, "a_color");
+    colorLocation = gl.getAttribLocation(program, "a_color");
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     gl.enableVertexAttribArray(colorLocation);
 
-    setColors(gl);
-
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    //Update  X according to X slider
-    var Xvalue = document.getElementById("Xvalue");
-    Xvalue.innerHTML = translation[0];
-    document.getElementById("sliderX").onchange = function (event) {
-        translation[0] = event.target.value;
-        Xvalue.innerHTML = translation[0];
-        requestAnimationFrame(render);
-    };
+    // //Update  X according to X slider
+    // var Xvalue = document.getElementById("Xvalue");
+    // Xvalue.innerHTML = translation[0];
+    // document.getElementById("sliderX").onchange = function (event) {
+    //     translation[0] = event.target.value;
+    //     Xvalue.innerHTML = translation[0];
+    //     requestAnimationFrame(render);
+    // };
 
-    //Update Y according to Y slider
-    var Yvalue = document.getElementById("Yvalue");
-    Yvalue.innerHTML = translation[1];
-    document.getElementById("sliderY").onchange = function (event) {
-        translation[1] = event.target.value;
-        Yvalue.innerHTML = translation[1];
-        requestAnimationFrame(render);
-    };
+    // //Update Y according to Y slider
+    // var Yvalue = document.getElementById("Yvalue");
+    // Yvalue.innerHTML = translation[1];
+    // document.getElementById("sliderY").onchange = function (event) {
+    //     translation[1] = event.target.value;
+    //     Yvalue.innerHTML = translation[1];
+    //     requestAnimationFrame(render);
+    // };
 
-    var Zvalue = document.getElementById("Zvalue");
-    Zvalue.innerHTML = translation[2];
-    document.getElementById("sliderZ").onchange = function (event) {
-        translation[2] = event.target.value;
-        Zvalue.innerHTML = translation[2];
-        requestAnimationFrame(render);
-    };
+    // var Zvalue = document.getElementById("Zvalue");
+    // Zvalue.innerHTML = translation[2];
+    // document.getElementById("sliderZ").onchange = function (event) {
+    //     translation[2] = event.target.value;
+    //     Zvalue.innerHTML = translation[2];
+    //     requestAnimationFrame(render);
+    // };
 
-    //Update rotation angle according to angle slider
+    // //Update rotation angle according to angle slider
 
-    // rotation = [degToRad(40), degToRad(25), degToRad(325)];
+    rotation = [degToRad(15), degToRad(11), degToRad(12)];
 
-    //rotation X
-    var angleXValue = document.getElementById("AXvalue");
-    angleXValue.innerHTML = radToDeg(rotation[0]);
-    document.getElementById("sliderAX").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[0] = angleInRadians;
-        angleXValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Y
-    var angleYValue = document.getElementById("AYvalue");
-    angleYValue.innerHTML = radToDeg(rotation[1]);
-    document.getElementById("sliderAY").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[1] = angleInRadians;
-        angleYValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Z
-    var angleZValue = document.getElementById("AZvalue");
-    angleZValue.innerHTML = radToDeg(rotation[2]);
-    document.getElementById("sliderAZ").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[2] = angleInRadians;
-        angleZValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-
-
-    //Update scaleX according to scaleX slider
-    var scaleX = document.getElementById("scaleX");
-    scaleX.innerHTML = scale[0];
-    document.getElementById("sliderscaleX").onchange = function (event) {
-        scale[0] = event.target.value;
-        scaleX.innerHTML = scale[0];
-        requestAnimationFrame(render);
-    };
+    // //rotation X
+    // var angleXValue = document.getElementById("AXvalue");
+    // angleXValue.innerHTML = radToDeg(rotation[0]);
+    // document.getElementById("sliderAX").onchange = function (event) {
+    //     var angleInDegrees = 360 - event.target.value;
+    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
+    //     rotation[0] = angleInRadians;
+    //     angleXValue.innerHTML = 360 - angleInDegrees;
+    //     requestAnimationFrame(render);
+    // };
+    // //rotation Y
+    // var angleYValue = document.getElementById("AYvalue");
+    // angleYValue.innerHTML = radToDeg(rotation[1]);
+    // document.getElementById("sliderAY").onchange = function (event) {
+    //     var angleInDegrees = 360 - event.target.value;
+    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
+    //     rotation[1] = angleInRadians;
+    //     angleYValue.innerHTML = 360 - angleInDegrees;
+    //     requestAnimationFrame(render);
+    // };
+    // //rotation Z
+    // var angleZValue = document.getElementById("AZvalue");
+    // angleZValue.innerHTML = radToDeg(rotation[2]);
+    // document.getElementById("sliderAZ").onchange = function (event) {
+    //     var angleInDegrees = 360 - event.target.value;
+    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
+    //     rotation[2] = angleInRadians;
+    //     angleZValue.innerHTML = 360 - angleInDegrees;
+    //     requestAnimationFrame(render);
+    // };
 
 
-    //Update scaleY according to scaleY slider
-    var scaleY = document.getElementById("scaleY");
-    scaleY.innerHTML = scale[1];
-    document.getElementById("sliderscaleY").onchange = function (event) {
-        scale[1] = event.target.value;
-        scaleY.innerHTML = scale[1];
-        requestAnimationFrame(render);
-    };
+    // //Update scaleX according to scaleX slider
+    // var scaleX = document.getElementById("scaleX");
+    // scaleX.innerHTML = scale[0];
+    // document.getElementById("sliderscaleX").onchange = function (event) {
+    //     scale[0] = event.target.value;
+    //     scaleX.innerHTML = scale[0];
+    //     requestAnimationFrame(render);
+    // };
 
-    //Update scaleZ according to scaleZ slider
-    var scaleZ = document.getElementById("scaleZ");
-    scaleZ.innerHTML = scale[2];
-    document.getElementById("sliderscaleZ").onchange = function (event) {
-        scale[2] = event.target.value;
-        scaleZ.innerHTML = scale[2];
-        requestAnimationFrame(render);
-    };
+
+    // //Update scaleY according to scaleY slider
+    // var scaleY = document.getElementById("scaleY");
+    // scaleY.innerHTML = scale[1];
+    // document.getElementById("sliderscaleY").onchange = function (event) {
+    //     scale[1] = event.target.value;
+    //     scaleY.innerHTML = scale[1];
+    //     requestAnimationFrame(render);
+    // };
+
+    // //Update scaleZ according to scaleZ slider
+    // var scaleZ = document.getElementById("scaleZ");
+    // scaleZ.innerHTML = scale[2];
+    // document.getElementById("sliderscaleZ").onchange = function (event) {
+    //     scale[2] = event.target.value;
+    //     scaleZ.innerHTML = scale[2];
+    //     requestAnimationFrame(render);
+    // };
+
 
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render);
 }
 
 function render() {
-    // Compute the matrices
-    rotation[1] += 0.05;
-    // matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    // matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    // matrix = m4.xRotate(matrix, rotation[0]);
-    // matrix = m4.yRotate(matrix, rotation[1]);
-    // matrix = m4.zRotate(matrix, rotation[2]);
-    // matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    // // rotation[1] += 1;
-    // // Set the matrix.
-    // gl.uniformMatrix4fv(matrixLocation, false, matrix);
-
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // gl.drawArrays(primitiveType, offset, count);
-    drawO();
-    drawH(2);
+    gl.enable(gl.CULL_FACE); //enable depth buffer
+    gl.enable(gl.DEPTH_TEST);
+
+    rotation[1] -= 0.05;
+
+    drawO(); // Draw the 'O' object
+    drawH(3); // Draw the 'H' object
+    drawH(2); // Draw the 'H' object
+    
 
     requestAnimationFrame(render); //refresh
-
 }
+
+
 
 function radToDeg(r) {
     return r * 180 / Math.PI;
@@ -196,11 +199,13 @@ function degToRad(d) {
 }
 
 function drawO() {
-    count = 120;
-    translation = shapeTranslation[1];
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[1]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
-    setGeometry(gl, 1);
-    setColors(gl);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[1]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    translation = shapeTranslation[1];
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -210,14 +215,17 @@ function drawO() {
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, count);
+    gl.drawArrays(primitiveType, offset, 120); // Update count value
 }
 
 function drawH(numH) {
-    count = 12;
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[2]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[2]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
     translation = shapeTranslation[numH];
-    setGeometry(gl, 2);
-    setColors(gl);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -227,8 +235,9 @@ function drawH(numH) {
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, count);
+    gl.drawArrays(primitiveType, offset, 108); // Update count value
 }
+
 
 var m4 = {
 
@@ -371,11 +380,11 @@ var m4 = {
 
 };
 
-// Fill the buffer with the values that define a letter 'F'.
-function setGeometry(gl, shape) {
+function setGeometry(gl, shape, positionBuffer) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     switch (shape) {
         case 1:
-            gl.bufferData(
+            gl.bufferData( // set the buffer data for the shape to be a letter 'O'
                 gl.ARRAY_BUFFER,
                 new Float32Array([
                     //front-left
@@ -542,7 +551,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
             break;
         case 2:
-            gl.bufferData(
+            gl.bufferData( // set the buffer data for the shape to be a letter 'H'
                 gl.ARRAY_BUFFER,
                 new Float32Array([
                     //front-left
@@ -560,175 +569,459 @@ function setGeometry(gl, shape) {
                     60, 70, 0,
                     60, 40, 0,
                     30, 40, 0,
+
+                    //front-right
+                    90, 0, 0,
+                    60, 0, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    90, 110, 0,
+                    90, 0, 0,
+
+                    //back-left
+                    0, 0, 30,
+                    30, 0, 30,
+                    0, 110, 30,
+                    0, 110, 30,
+                    30, 0, 30,
+                    30, 110, 30,
+
+                    //back-middle
+                    30, 40, 30,
+                    60, 40, 30,
+                    30, 70, 30,
+                    30, 70, 30,
+                    60, 40, 30,
+                    60, 70, 30,
+
+                    //back-right
+                    60, 0, 30,
+                    90, 0, 30,
+                    60, 110, 30,
+                    60, 110, 30,
+                    90, 0, 30,
+                    90, 110, 30,
+
+                    //top-left
+                    0, 0, 0,
+                    30, 0, 0,
+                    30, 0, 30,
+                    0, 0, 0,
+                    30, 0, 30,
+                    0, 0, 30,
+
+                    //top-middle
+                    30, 40, 0,
+                    60, 40, 0,
+                    60, 40, 30,
+                    30, 40, 0,
+                    60, 40, 30,
+                    30, 40, 30,
+
+                    //top-right
+                    60, 0, 0,
+                    90, 0, 0,
+                    90, 0, 30,
+                    60, 0, 0,
+                    90, 0, 30,
+                    60, 0, 30,
+
+                    //outer-right
+                    90, 0, 30,
+                    90, 0, 0,
+                    90, 110, 0,
+                    90, 110, 0,
+                    90, 110, 30,
+                    90, 0, 30,
+
+                    //bottom-right
+                    90, 110, 30,
+                    90, 110, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    60, 110, 30,
+                    90, 110, 30,
+
+                    //bottom-middle
+                    60, 70, 30,
+                    60, 70, 0,
+                    30, 70, 0,
+                    30, 70, 0,
+                    30, 70, 30,
+                    60, 70, 30,
+
+                    //bottom-left
+                    30, 110, 30,
+                    30, 110, 0,
+                    0, 110, 0,
+                    0, 110, 0,
+                    0, 110, 30,
+                    30, 110, 30,
+
+                    //outer-left
+                    0, 110, 30,
+                    0, 110, 0,
+                    0, 0, 0,
+                    0, 0, 0,
+                    0, 0, 30,
+                    0, 110, 30,
+
+                    //inner-top-left
+                    30, 0, 0,
+                    30, 40, 30,
+                    30, 0, 30,
+                    30, 0, 0,
+                    30, 40, 0,
+                    30, 40, 30,
+
+                    //inner-bottom-left
+                    30, 70, 0,
+                    30, 110, 30,
+                    30, 70, 30,
+                    30, 70, 0,
+                    30, 110, 0,
+                    30, 110, 30,
+
+                    //inner-top-right
+                    60, 0, 30,
+                    60, 40, 0,
+                    60, 0, 0,
+                    60, 0, 30,
+                    60, 40, 30,
+                    60, 40, 0,
+
+                    //inner-bottom-right
+                    60, 70, 30,
+                    60, 110, 0,
+                    60, 70, 0,
+                    60, 70, 30,
+                    60, 110, 30,
+                    60, 110, 0,
                 ]),
                 gl.STATIC_DRAW);
             break;
     }
 }
 
-// Fill the buffer with colors for the 'F'.
-function setColors(gl) {
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Uint8Array([
-            //front-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+function setColors(gl, shape, colorBuffer) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    switch (shape) {
+        case 1:
+            gl.bufferData( // set the buffer data for the colors of the letter 'O'
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //top-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-right-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-right-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-left-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-left-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //inner-bottom
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-bottom
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-left
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-left
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-top
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-top
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-right
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,]),
-        gl.STATIC_DRAW);
+                    //inner-right
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                ]),
+                gl.STATIC_DRAW);
+            break;
+        case 2:
+            gl.bufferData( // set the buffer data for the colors of the letter 'H'
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //top-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //inner-top-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-top-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                ]),
+                gl.STATIC_DRAW);
+            break;
+    }
+
 }
