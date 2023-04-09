@@ -25,11 +25,14 @@ var projectionMatrix;
 var positionBuffers = {};
 var colorBuffers = {};
 
+var revolutionH1 = 1;
+var revolutionH2 = 1;
+
 // 1 = O, 2 = h1, 3 = h2
 var shapeTranslation = {
     1: [370, 150, 0],
-    2: [170, 50, 0],
-    3: [580, 50, 0],
+    2: [170, 50, 100],
+    3: [580, 50, -100],
 }
 
 window.onload = function init() {
@@ -78,96 +81,7 @@ window.onload = function init() {
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    // //Update  X according to X slider
-    // var Xvalue = document.getElementById("Xvalue");
-    // Xvalue.innerHTML = translation[0];
-    // document.getElementById("sliderX").onchange = function (event) {
-    //     translation[0] = event.target.value;
-    //     Xvalue.innerHTML = translation[0];
-    //     requestAnimationFrame(render);
-    // };
-
-    // //Update Y according to Y slider
-    // var Yvalue = document.getElementById("Yvalue");
-    // Yvalue.innerHTML = translation[1];
-    // document.getElementById("sliderY").onchange = function (event) {
-    //     translation[1] = event.target.value;
-    //     Yvalue.innerHTML = translation[1];
-    //     requestAnimationFrame(render);
-    // };
-
-    // var Zvalue = document.getElementById("Zvalue");
-    // Zvalue.innerHTML = translation[2];
-    // document.getElementById("sliderZ").onchange = function (event) {
-    //     translation[2] = event.target.value;
-    //     Zvalue.innerHTML = translation[2];
-    //     requestAnimationFrame(render);
-    // };
-
-    // //Update rotation angle according to angle slider
-
     rotation = [degToRad(15), degToRad(11), degToRad(12)];
-
-    // //rotation X
-    // var angleXValue = document.getElementById("AXvalue");
-    // angleXValue.innerHTML = radToDeg(rotation[0]);
-    // document.getElementById("sliderAX").onchange = function (event) {
-    //     var angleInDegrees = 360 - event.target.value;
-    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-    //     rotation[0] = angleInRadians;
-    //     angleXValue.innerHTML = 360 - angleInDegrees;
-    //     requestAnimationFrame(render);
-    // };
-    // //rotation Y
-    // var angleYValue = document.getElementById("AYvalue");
-    // angleYValue.innerHTML = radToDeg(rotation[1]);
-    // document.getElementById("sliderAY").onchange = function (event) {
-    //     var angleInDegrees = 360 - event.target.value;
-    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-    //     rotation[1] = angleInRadians;
-    //     angleYValue.innerHTML = 360 - angleInDegrees;
-    //     requestAnimationFrame(render);
-    // };
-    // //rotation Z
-    // var angleZValue = document.getElementById("AZvalue");
-    // angleZValue.innerHTML = radToDeg(rotation[2]);
-    // document.getElementById("sliderAZ").onchange = function (event) {
-    //     var angleInDegrees = 360 - event.target.value;
-    //     angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-    //     rotation[2] = angleInRadians;
-    //     angleZValue.innerHTML = 360 - angleInDegrees;
-    //     requestAnimationFrame(render);
-    // };
-
-
-    // //Update scaleX according to scaleX slider
-    // var scaleX = document.getElementById("scaleX");
-    // scaleX.innerHTML = scale[0];
-    // document.getElementById("sliderscaleX").onchange = function (event) {
-    //     scale[0] = event.target.value;
-    //     scaleX.innerHTML = scale[0];
-    //     requestAnimationFrame(render);
-    // };
-
-
-    // //Update scaleY according to scaleY slider
-    // var scaleY = document.getElementById("scaleY");
-    // scaleY.innerHTML = scale[1];
-    // document.getElementById("sliderscaleY").onchange = function (event) {
-    //     scale[1] = event.target.value;
-    //     scaleY.innerHTML = scale[1];
-    //     requestAnimationFrame(render);
-    // };
-
-    // //Update scaleZ according to scaleZ slider
-    // var scaleZ = document.getElementById("scaleZ");
-    // scaleZ.innerHTML = scale[2];
-    // document.getElementById("sliderscaleZ").onchange = function (event) {
-    //     scale[2] = event.target.value;
-    //     scaleZ.innerHTML = scale[2];
-    //     requestAnimationFrame(render);
-    // };
-
 
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render);
@@ -179,6 +93,21 @@ function render() {
     gl.enable(gl.DEPTH_TEST);
 
     rotation[1] -= 0.05;
+
+    if(Math.abs(shapeTranslation[3][0]) == 200 || Math.abs(shapeTranslation[3][0]) == 600 ){
+        revolutionH2 = -revolutionH2;
+        shapeTranslation[3][2] = -shapeTranslation[3][2]
+    }
+    shapeTranslation[3][0] -= revolutionH2;
+    shapeTranslation[3][1] += revolutionH2;
+
+    if(Math.abs(shapeTranslation[2][0]) == 150 || Math.abs(shapeTranslation[2][0]) == 550 ){
+        revolutionH1 = -revolutionH1;
+        shapeTranslation[2][2] = -shapeTranslation[2][2]
+    }
+    shapeTranslation[2][0] += revolutionH1;
+    shapeTranslation[2][1] += revolutionH1;
+
 
     drawO(); // Draw the 'O' object
     drawH(3); // Draw the 'H' object
