@@ -1,5 +1,6 @@
 "use strict";
 
+// Deklarasi variabel global
 var canvas;
 var gl;
 
@@ -24,7 +25,7 @@ let isDragging = false;
 let lastUpdatedPosition = { x: 0, y: 0 };
 let updateThreshold = 20; // Ambang batas dalam piksel, sesuaikan sesuai kebutuhan
 
-
+// Objek transformasi
 var shapeTranslation = {
     1: [75, 100],
     2: [100, 150],
@@ -49,9 +50,10 @@ var translation = shapeTranslation[1];
 var scale = shapeScale[1];
 var angleInRadians = shapeAngleInRad[1];
 
+// Fungsi yang dipanggil ketika halaman selesai dimuat
 window.onload = function init() {
+    // Inisialisasi canvas dan konteks WebGL
     canvas = document.getElementById("gl-canvas");
-
     canvas.addEventListener('mousedown', onMouseDown, false);
     canvas.addEventListener('mousemove', onMouseMove, false);
     canvas.addEventListener('mouseup', onMouseUp, false);
@@ -86,28 +88,26 @@ window.onload = function init() {
         button[i].addEventListener("click", addSelectClass);
     }
 
-    //
-    //  Configure WebGL
-    //
+    // Konfigurasi WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-    //  Load shaders and initialize attribute buffers
+    // Muat shader dan inisialisasi buffer atribut
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
-    // Load the data into the GPU
+    // Memuat data ke dalam GPU
     var bufferId = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
 
     // setGeometry(gl);
 
-    // Associate out shader variables with our data buffer
+    // Menghubungkan variabel shader dengan buffer data
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    // set the resolution
+    // Mengatur resolusi
     var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
@@ -133,7 +133,6 @@ window.onload = function init() {
         requestAnimationFrame(render);
     };
 
-
     //Update rotation angle according to angle slider
     var angleValue = document.getElementById("Avalue");
     angleValue.innerHTML = angle;
@@ -144,7 +143,6 @@ window.onload = function init() {
         requestAnimationFrame(render);
     };
 
-
     //Update scaleX according to scaleX slider
     var scaleX = document.getElementById("scaleX");
     scaleX.innerHTML = scale[0];
@@ -153,7 +151,6 @@ window.onload = function init() {
         scaleX.innerHTML = scale[0];
         requestAnimationFrame(render);
     };
-
 
     //Update scaleY according to scaleY slider
     var scaleY = document.getElementById("scaleY");
@@ -174,6 +171,7 @@ window.onload = function init() {
     requestAnimationFrame(render);
     };
 
+    // Fungsi event listener untuk interaksi mouse
     function onMouseDown(event) {
         // Konversi posisi mouse ke koordinat kanvas
         let x = event.clientX - canvas.getBoundingClientRect().left;
@@ -204,7 +202,6 @@ window.onload = function init() {
         }
     }
 
-    
     function onMouseUp(event) {
         isDragging = false;
         selectedObject = 0;
@@ -231,11 +228,11 @@ function render(timestamp) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.clearColor(0.83, 0.99, 0.91, 1);
 
-    if (renderValue == 1) {
+    if (renderValue === 1) {
         drawStar();
         drawRectangle();
         drawTriangle();
-    } else if (renderValue == 2) {
+    } else if (renderValue === 2) {
         drawTriangle();
         drawStar();
         drawRectangle();
@@ -251,7 +248,7 @@ function render(timestamp) {
 }
 
 function drawTriangle() {
-    count = 3; //number of vertices 
+    count = 3; //number of vertices
     translation = shapeTranslation[1];
     scale = shapeScale[1];
     angleInRadians = shapeAngleInRad[1];
@@ -283,7 +280,7 @@ function drawTriangle() {
 }
 
 function drawRectangle() {
-    count = 6; //number of vertices 
+    count = 6; //number of vertices
     translation = shapeTranslation[2];
     scale = shapeScale[2];
     angleInRadians = shapeAngleInRad[2];
@@ -315,7 +312,7 @@ function drawRectangle() {
 }
 
 function drawStar() {
-    count = 18; //number of vertices 
+    count = 18; //number of vertices
     translation = shapeTranslation[3];
     scale = shapeScale[3];
     angleInRadians = shapeAngleInRad[3];
@@ -346,7 +343,7 @@ function drawStar() {
     gl.drawArrays(primitiveType, offset, count);
 }
 
-
+// Object to store matrix-related functions
 var m3 = {
     identity: function () {
         return [
@@ -424,9 +421,10 @@ var m3 = {
     },
 };
 
+// Function to set geometry for WebGL shapes
 function setGeometry(gl, shape) {
     switch (shape) {
-        case 1:                     
+        case 1:
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -437,7 +435,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 2: 				
+        case 2:
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([
@@ -453,7 +451,7 @@ function setGeometry(gl, shape) {
                 gl.STATIC_DRAW);
 
             break;
-        case 3: 				
+        case 3:
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array([

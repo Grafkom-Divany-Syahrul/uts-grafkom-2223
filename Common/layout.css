@@ -25,11 +25,6 @@ canvas{
   align-items: center;
 }
 
-#btnGrp{
-  background-color: #16A4A8;
-  border-radius: 10px;
-  justify-content: center;
-}
 #buttons01{
   gap: 5px;
 }
@@ -44,7 +39,7 @@ canvas{
   color: #085A70;
 }
 
-#slidercontainer, #notes {
+#slidercontainer, #notes, #btnGrp, #inputPointCont, #windDirectionCont {
   background-color: #16A4A8;
   border-radius: 10px;
   justify-content: center;
@@ -57,6 +52,16 @@ footer{
 #footer-layout{
   gap: 5px;
   align-items: center;
+}
+
+.form-select{
+  background-color: #D4FDE7;
+  color: #085A70;
+}
+
+.form-control{
+  background-color: #D4FDE7;
+  color: #085A70;
 }
 
 .form-range {
