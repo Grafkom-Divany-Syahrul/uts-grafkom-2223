@@ -5,27 +5,64 @@ var gl;
 
 var primitiveType;
 var offset = 0;
-var count = 120;
+var count = 108;
 
 
 var translation = [300, 150, 0]; //top-left-depth of F
 var rotation = [0, 0, 0];
+var rotationO = [0, 0, 0];
 var scale = [1.0, 1.0, 1.0]; //default scale
 
+// default position modifier matrices
+var rootTranslation = [
+  [100, 100, 0],
+  [400, 100, 0],
+  [400, 100, 0],
+];
+var rootRotation = [
+  [1, 0, 0],
+  [1, 0, 0],
+  [1, 0, 0],
+];
+var rootScale = [
+  [1.0, 1.0, 1.0],
+  [1.0, 1.0, 1.0],
+  [1.0, 1.0, 1.0],
+];
+
+var oxygenRevolution = [
+  [degToRad(-30), degToRad(30)],
+  [degToRad(-150), degToRad(150)],
+];
+var oxygenRevSpeed = [0.01, degToRad(30) / 100];
+let origin = [];
+
+
 var angleInRadians = 0;
+var centerO = [0, 0, 0];
+var centerH = [0, 0, 0];
+var angleH = 0;
+var rotationSpeed = 0.01; // Kecepatan rotasi dalam radians per frame
+
+var shiftAngle = 0;
+var shiftSpeed = 15; // Pergeseran 15 derajat setelah satu revolusi
 
 var matrix;
 var matrixLocation;
+var positionLocation;
+var colorLocation;
 var translationMatrix;
 var rotationMatrix;
 var scaleMatrix;
 var projectionMatrix;
+var positionBuffers = {};
+var colorBuffers = {};
 
 // 1 = O, 2 = h1, 3 = h2
 var shapeTranslation = {
-    1: [300, 150, 0],
-    2: [100, 50, 0],
-    3: [300, 150, 0],
+    0: [300, 150, 0],
+    1: [100, 50, 0],
+    2: [600, 50, 0],
 }
 
 window.onload = function init() {
@@ -48,26 +85,29 @@ window.onload = function init() {
     gl.useProgram(program);
 
     // Load the data into the GPU
-    var positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    positionBuffers = {
+        1: gl.createBuffer(),
+        2: gl.createBuffer()
+    };
 
-    var positionLocation = gl.getAttribLocation(program, "a_position");
+    colorBuffers = {
+        1: gl.createBuffer(),
+        2: gl.createBuffer()
+    };
+
+    setGeometry(gl, 1, positionBuffers[1]);
+    setGeometry(gl, 2, positionBuffers[2]);
+
+    setColors(gl, 1, colorBuffers[1]);
+    setColors(gl, 2, colorBuffers[2]);
+
+    positionLocation = gl.getAttribLocation(program, "a_position");
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-    // setGeometry(gl, 1 );
-
-
-    // var colorBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-    // // Associate out shader variables with our data buffer
-
-    // var colorLocation = gl.getAttribLocation(program, "a_color");
-    // gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-    // gl.enableVertexAttribArray(colorLocation);
-
-    // setColors(gl);
+    colorLocation = gl.getAttribLocation(program, "a_color");
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    gl.enableVertexAttribArray(colorLocation);
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
@@ -161,31 +201,29 @@ window.onload = function init() {
         requestAnimationFrame(render);
     };
 
+
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render);
 }
 
 function render() {
-    // Compute the matrices
-    rotation[1] += 0.05;
-    // matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    // matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    // matrix = m4.xRotate(matrix, rotation[0]);
-    // matrix = m4.yRotate(matrix, rotation[1]);
-    // matrix = m4.zRotate(matrix, rotation[2]);
-    // matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    // // rotation[1] += 1;
-    // // Set the matrix.
-    // gl.uniformMatrix4fv(matrixLocation, false, matrix);
+    // Update rotationO
+    var angleInDegrees = 30;
+    var angleInRadians = degToRad(angleInDegrees);
+    rotationO[1] += angleInRadians / 60; // Rotate counter-clockwise around the Z-axis
+    rotation[1] += 0.075; // Tambahkan perubahan sudut dalam setiap frame (misalnya, 0.01 radian)
+
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // gl.drawArrays(primitiveType, offset, count);
+    gl.enable(gl.CULL_FACE); //enable depth buffer
+    gl.enable(gl.DEPTH_TEST);
     drawO();
-    drawH(2);
-
+    
+    drawH(1);
+    drawH(2)
     requestAnimationFrame(render); //refresh
-
 }
+
 
 function radToDeg(r) {
     return r * 180 / Math.PI;
@@ -196,28 +234,61 @@ function degToRad(d) {
 }
 
 function drawO() {
-    count = 120;
-    translation = shapeTranslation[1];
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[1]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
-    setGeometry(gl, 1);
-    // setColors(gl);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[1]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    translation = shapeTranslation[0];
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
-    matrix = m4.zRotate(matrix, rotation[2]);
+
+    // Translate ke titik tengah huruf "O"
+    matrix = m4.translate(matrix, translation[0] + centerO[0], translation[1] + centerO[1], translation[2] + centerO[2]);
+
+    // Lakukan rotasi di sekitar sumbu Y
+    matrix = m4.yRotate(matrix, rotationO[1]);
+
+    // Translate kembali ke posisi awal
+    matrix = m4.translate(matrix, -centerO[0], -centerO[1], -centerO[2]);
+
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, count);
+    gl.drawArrays(primitiveType, offset, 120); // Update count value
 }
 
 function drawH(numH) {
-    count = 12;
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[2]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[2]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
     translation = shapeTranslation[numH];
-    setGeometry(gl, 2);
-    setColors(gl);
+
+    var centerOWorld = [
+        centerO[0] + shapeTranslation[0][0],
+        centerO[1] + shapeTranslation[0][1],
+        centerO[2] + shapeTranslation[0][2],
+    ];
+
+    const revRadius = 160;
+    translation[0] =
+    revRadius *
+      Math.sin(oxygenRevolution[numH - 1][0]) *
+      Math.cos(oxygenRevolution[numH - 1][1]) +
+    centerOWorld[0] - 10;
+  translation[1] =
+    revRadius *
+      Math.sin(oxygenRevolution[numH - 1][0]) *
+      Math.sin(oxygenRevolution[numH - 1][1]) +
+    centerOWorld[1] - 55;
+    translation[2] = revRadius * Math.cos(oxygenRevolution[numH - 1][0]) + centerOWorld[2];
+
+  oxygenRevolution[numH - 1][0] += (numH === 1 ? -1 : 1) * oxygenRevSpeed[0];
+  oxygenRevolution[numH - 1][1] += (numH === 1 ? 1 : -1) * oxygenRevSpeed[1];
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -227,8 +298,9 @@ function drawH(numH) {
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, count);
+    gl.drawArrays(primitiveType, offset, 108); // Update count value
 }
+
 
 var m4 = {
 
@@ -371,13 +443,11 @@ var m4 = {
 
 };
 
-// Fill the buffer with the values that define a letter 'F'.
-function setGeometry(gl, shape) {
+function setGeometry(gl, shape, positionBuffer) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     switch (shape) {
         case 1:
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array([
+            var verticesO = [
                     //front-left
                     50, 0, 0,
                     0, 40, 0,
@@ -538,13 +608,34 @@ function setGeometry(gl, shape) {
                     100, 140, 30,
                     100, 140, 0,
 
-                ]),
-                gl.STATIC_DRAW);
-            break;
-        case 2:
+                ]
             gl.bufferData(
                 gl.ARRAY_BUFFER,
-                new Float32Array([
+                new Float32Array(verticesO),
+                gl.STATIC_DRAW);
+            // Hitung titik tengah huruf "O"
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+
+            for (var i = 0; i < verticesO.length; i += 3) {
+                var x = verticesO[i];
+                var y = verticesO[i + 1];
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+
+            centerO[0] = (minX + maxX) / 2;
+            centerO[1] = (minY + maxY) / 2;
+            centerO[2] = 0;
+
+            break;
+        case 2:
+            var verticesH = [
                     //front-left
                     30, 0, 0,
                     0, 0, 0,
@@ -560,175 +651,485 @@ function setGeometry(gl, shape) {
                     60, 70, 0,
                     60, 40, 0,
                     30, 40, 0,
-                ]),
+
+                    //front-right
+                    90, 0, 0,
+                    60, 0, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    90, 110, 0,
+                    90, 0, 0,
+
+                    //back-left
+                    0, 0, 30,
+                    30, 0, 30,
+                    0, 110, 30,
+                    0, 110, 30,
+                    30, 0, 30,
+                    30, 110, 30,
+
+                    //back-middle
+                    30, 40, 30,
+                    60, 40, 30,
+                    30, 70, 30,
+                    30, 70, 30,
+                    60, 40, 30,
+                    60, 70, 30,
+
+                    //back-right
+                    60, 0, 30,
+                    90, 0, 30,
+                    60, 110, 30,
+                    60, 110, 30,
+                    90, 0, 30,
+                    90, 110, 30,
+
+                    //top-left
+                    0, 0, 0,
+                    30, 0, 0,
+                    30, 0, 30,
+                    0, 0, 0,
+                    30, 0, 30,
+                    0, 0, 30,
+
+                    //top-middle
+                    30, 40, 0,
+                    60, 40, 0,
+                    60, 40, 30,
+                    30, 40, 0,
+                    60, 40, 30,
+                    30, 40, 30,
+
+                    //top-right
+                    60, 0, 0,
+                    90, 0, 0,
+                    90, 0, 30,
+                    60, 0, 0,
+                    90, 0, 30,
+                    60, 0, 30,
+
+                    //outer-right
+                    90, 0, 30,
+                    90, 0, 0,
+                    90, 110, 0,
+                    90, 110, 0,
+                    90, 110, 30,
+                    90, 0, 30,
+
+                    //bottom-right
+                    90, 110, 30,
+                    90, 110, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    60, 110, 30,
+                    90, 110, 30,
+
+                    //bottom-middle
+                    60, 70, 30,
+                    60, 70, 0,
+                    30, 70, 0,
+                    30, 70, 0,
+                    30, 70, 30,
+                    60, 70, 30,
+
+                    //bottom-left
+                    30, 110, 30,
+                    30, 110, 0,
+                    0, 110, 0,
+                    0, 110, 0,
+                    0, 110, 30,
+                    30, 110, 30,
+
+                    //outer-left
+                    0, 110, 30,
+                    0, 110, 0,
+                    0, 0, 0,
+                    0, 0, 0,
+                    0, 0, 30,
+                    0, 110, 30,
+
+                    //inner-top-left
+                    30, 0, 0,
+                    30, 40, 30,
+                    30, 0, 30,
+                    30, 0, 0,
+                    30, 40, 0,
+                    30, 40, 30,
+
+                    //inner-bottom-left
+                    30, 70, 0,
+                    30, 110, 30,
+                    30, 70, 30,
+                    30, 70, 0,
+                    30, 110, 0,
+                    30, 110, 30,
+
+                    //inner-top-right
+                    60, 0, 30,
+                    60, 40, 0,
+                    60, 0, 0,
+                    60, 0, 30,
+                    60, 40, 30,
+                    60, 40, 0,
+
+                    //inner-bottom-right
+                    60, 70, 30,
+                    60, 110, 0,
+                    60, 70, 0,
+                    60, 70, 30,
+                    60, 110, 30,
+                    60, 110, 0,
+                ]
+            gl.bufferData( // set the buffer data for the shape to be a letter 'H'
+                gl.ARRAY_BUFFER,
+                new Float32Array(verticesH),
                 gl.STATIC_DRAW);
+            
+            // Hitung titik tengah huruf "H"
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+            var minZ = Infinity;
+            var maxZ = -Infinity;
+
+            for (var i = 0; i < verticesH.length; i += 3) {
+                var x = verticesH[i];
+                var y = verticesH[i + 1];
+                var z = verticesH[i + 2];
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+                if (z < minZ) minZ = z;
+                if (z > maxZ) maxZ = z;
+            }
+
+            centerH = [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2];
+
             break;
     }
 }
 
-// Fill the buffer with colors for the 'F'.
-function setColors(gl) {
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Uint8Array([
-            //front-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+function setColors(gl, shape, colorBuffer) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    switch (shape) {
+        case 1:
+            gl.bufferData( // set the buffer data for the colors of the letter 'O'
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //top-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-right-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-right-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-left-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-left-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //inner-bottom
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-bottom
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-left
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-left
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-top
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-top
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-right
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,]),
-        gl.STATIC_DRAW);
+                    //inner-right
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                ]),
+                gl.STATIC_DRAW);
+            break;
+        case 2:
+            gl.bufferData( // set the buffer data for the colors of the letter 'H'
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //top-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //inner-top-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-top-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                ]),
+                gl.STATIC_DRAW);
+            break;
+    }
 }
