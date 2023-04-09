@@ -28,12 +28,15 @@ var colorBuffers = {};
 var revolutionH1 = 1;
 var revolutionH2 = 1;
 
-// 1 = O, 2 = h1, 3 = h2
 var shapeTranslation = {
-    1: [370, 150, 0],
-    2: [170, 50, 100],
-    3: [580, 50, -100],
+    1: [370, 200, 0],
+    2: [170, 79, 100],
+    3: [580, 79, -100],
 }
+
+var paramRevolStart = 59;
+var paramRevolEnd = 459;
+
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
@@ -94,14 +97,14 @@ function render() {
 
     rotation[1] -= 0.05;
 
-    if(Math.abs(shapeTranslation[3][0]) == 200 || Math.abs(shapeTranslation[3][0]) == 600 ){
+    if(Math.abs(shapeTranslation[3][1]) == paramRevolStart || Math.abs(shapeTranslation[3][1]) == paramRevolEnd ){
         revolutionH2 = -revolutionH2;
         shapeTranslation[3][2] = -shapeTranslation[3][2]
     }
     shapeTranslation[3][0] -= revolutionH2;
     shapeTranslation[3][1] += revolutionH2;
 
-    if(Math.abs(shapeTranslation[2][0]) == 150 || Math.abs(shapeTranslation[2][0]) == 550 ){
+    if(Math.abs(shapeTranslation[2][1]) == paramRevolStart || Math.abs(shapeTranslation[2][1]) == paramRevolEnd ){
         revolutionH1 = -revolutionH1;
         shapeTranslation[2][2] = -shapeTranslation[2][2]
     }
