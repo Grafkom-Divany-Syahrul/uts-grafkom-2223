@@ -56,17 +56,33 @@ void main() {
 	<!-- NAVBAR -->
 	<nav class="navbar">
 		<div class="container-fluid">
-			<span class="navbar-brand h1" href="#">
-				<</span>
-					<span class="navbar-brand mb-0 h1">H20 and Its Camera</span>
-					<a href="../01/01.html"><span class="navbar-brand h1">></span></a>
+			<a href="../02/02.html"><span class="navbar-brand h1" href="#">
+					< </span></a>
+			<span class="navbar-brand mb-0 h1">H20 and Its Camera</span>
+			<a href="../01/01.html"><span class="navbar-brand h1">></span></a>
 		</div>
 	</nav>
-	<div class="row">
-		<div class="leftcolumn">
-			<canvas id="gl-canvas" width="800" height="600">
-				Oops ... your browser doesn't support the HTML5 canvas element
-			</canvas>
+	<div class="container-fluid" id="page1">
+		<div class="d-flex flex-row mb-0" id="page1-layout">
+			<div class="d-flex flex-column mb-3">
+				<canvas id="gl-canvas" width="800" height="600">
+					Oops ... your browser doesn't support the HTML5 canvas element
+				</canvas>
+			</div>
+			<div class="d-flex flex-fill flex-column mb-3 p-2" id="transform-panel">
+				<div id="btnGrp">
+                    <div id="objSelectBtnGrp" class="d-flex flex-column p-3 text-center shadow-sm rounded">
+                        <p>Camera View</p>
+                        <div class="d-flex flex-column justify-content-center" id="buttons01">
+                            <button class="btn button selected shadow-sm rounded" value="0">Default
+                            </button>
+                            <button class="btn button shadow-sm rounded" value="2">Oksigen</button>
+                            <button class="btn button shadow-sm rounded" value="3">Hidrogen-1</button>
+							<button class="btn button shadow-sm rounded" value="3">Hidrogen-2</button>
+                        </div>
+                    </div>
+                </div>
+			</div>
 		</div>
 	</div>
 	<!-- FOOTER -->
