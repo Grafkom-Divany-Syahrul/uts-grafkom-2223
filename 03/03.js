@@ -10,6 +10,9 @@ var count = 108;
 
 var translation = [300, 150, 0]; //top-left-depth of F
 var rotation = [0, 0, 0];
+var rotationO = [0, 0, 0];
+var centerO = [0, 0, 0];
+var centerH = [0, 0, 0];
 var scale = [1.0, 1.0, 1.0]; //default scale
 
 var angleInRadians = 0;
@@ -30,7 +33,7 @@ var revolutionH2 = 1;
 
 // 1 = O, 2 = h1, 3 = h2
 var shapeTranslation = {
-    1: [370, 150, 0],
+    1: [300, 190, 0],
     2: [170, 50, 100],
     3: [580, 50, -100],
 }
@@ -92,28 +95,31 @@ function render() {
     gl.enable(gl.CULL_FACE); //enable depth buffer
     gl.enable(gl.DEPTH_TEST);
 
+    // Update rotationO
+    var angleInDegrees = 30;
+    var angleInRadians = degToRad(angleInDegrees);
+    rotationO[1] += angleInRadians / 2;// Rotate counter-clockwise around the Z-axis
     rotation[1] -= 0.05;
 
     if(Math.abs(shapeTranslation[3][0]) == 200 || Math.abs(shapeTranslation[3][0]) == 600 ){
         revolutionH2 = -revolutionH2;
         shapeTranslation[3][2] = -shapeTranslation[3][2]
     }
-    shapeTranslation[3][0] -= revolutionH2;
-    shapeTranslation[3][1] += revolutionH2;
+    shapeTranslation[3][0] -= 10 * revolutionH2;
+    shapeTranslation[3][1] += 10 * revolutionH2;
 
     if(Math.abs(shapeTranslation[2][0]) == 150 || Math.abs(shapeTranslation[2][0]) == 550 ){
         revolutionH1 = -revolutionH1;
         shapeTranslation[2][2] = -shapeTranslation[2][2]
     }
-    shapeTranslation[2][0] += revolutionH1;
-    shapeTranslation[2][1] += revolutionH1;
+    shapeTranslation[2][0] += 10 * revolutionH1;
+    shapeTranslation[2][1] += 10 * revolutionH1;
 
 
     drawO(); // Draw the 'O' object
     drawH(3); // Draw the 'H' object
     drawH(2); // Draw the 'H' object
     
-
     requestAnimationFrame(render); //refresh
 }
 
@@ -137,10 +143,18 @@ function drawO() {
     translation = shapeTranslation[1];
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
-    matrix = m4.zRotate(matrix, rotation[2]);
+
+    // Translate ke titik tengah huruf "O"
+    matrix = m4.translate(matrix, translation[0] + centerO[0], translation[1] + centerO[1], translation[2] + centerO[2]);
+
+    // Lakukan rotasi di sekitar sumbu Y
+    matrix = m4.zRotate(matrix, 0);
+    matrix = m4.xRotate(matrix, 10);
+    matrix = m4.yRotate(matrix, rotationO[1]);
+
+    // Translate kembali ke posisi awal
+    matrix = m4.translate(matrix, -centerO[0], -centerO[1], -centerO[2]);
+
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -313,9 +327,7 @@ function setGeometry(gl, shape, positionBuffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     switch (shape) {
         case 1:
-            gl.bufferData( // set the buffer data for the shape to be a letter 'O'
-                gl.ARRAY_BUFFER,
-                new Float32Array([
+            var verticesO = [
                     //front-left
                     50, 0, 0,
                     0, 40, 0,
@@ -476,13 +488,34 @@ function setGeometry(gl, shape, positionBuffer) {
                     100, 140, 30,
                     100, 140, 0,
 
-                ]),
+                ]
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(verticesO),
                 gl.STATIC_DRAW);
+            // Hitung titik tengah huruf "O"
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+
+            for (var i = 0; i < verticesO.length; i += 3) {
+                var x = verticesO[i];
+                var y = verticesO[i + 1];
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+
+            centerO[0] = (minX + maxX) / 2;
+            centerO[1] = (minY + maxY) / 2;
+            centerO[2] = 0;
+
             break;
         case 2:
-            gl.bufferData( // set the buffer data for the shape to be a letter 'H'
-                gl.ARRAY_BUFFER,
-                new Float32Array([
+            var verticesH = [
                     //front-left
                     30, 0, 0,
                     0, 0, 0,
@@ -626,8 +659,35 @@ function setGeometry(gl, shape, positionBuffer) {
                     60, 70, 30,
                     60, 110, 30,
                     60, 110, 0,
-                ]),
+                ]
+            gl.bufferData( // set the buffer data for the shape to be a letter 'H'
+                gl.ARRAY_BUFFER,
+                new Float32Array(verticesH),
                 gl.STATIC_DRAW);
+            
+            // Hitung titik tengah huruf "H"
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+            var minZ = Infinity;
+            var maxZ = -Infinity;
+
+            for (var i = 0; i < verticesH.length; i += 3) {
+                var x = verticesH[i];
+                var y = verticesH[i + 1];
+                var z = verticesH[i + 2];
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+                if (z < minZ) minZ = z;
+                if (z > maxZ) maxZ = z;
+            }
+
+            centerH = [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2];
+
             break;
     }
 }
