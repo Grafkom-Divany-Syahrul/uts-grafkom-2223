@@ -5,7 +5,7 @@ var gl;
 
 var primitiveType;
 var offset = 0;
-var count = 120;
+var count = 108;
 
 
 var translation = [300, 150, 0]; //top-left-depth of F
@@ -55,8 +55,7 @@ window.onload = function init() {
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-    setGeometry(gl, 1 );
-
+    setGeometry(gl, 1);
 
     var colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -67,7 +66,28 @@ window.onload = function init() {
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
     gl.enableVertexAttribArray(colorLocation);
 
-    setColors(gl);
+    setColors(gl, 1);
+
+    var positionBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
+
+    var positionLocation2 = gl.getAttribLocation(program, "a_position");
+    gl.vertexAttribPointer(positionLocation2, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(positionLocation2);
+
+    setGeometry(gl, 2);
+
+
+    var colorBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
+
+    // Associate out shader variables with our data buffer
+
+    var colorLocation2 = gl.getAttribLocation(program, "a_color");
+    gl.vertexAttribPointer(colorLocation2, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    gl.enableVertexAttribArray(colorLocation2);
+
+    setColors(gl, 2);
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
@@ -167,7 +187,7 @@ window.onload = function init() {
 
 function render() {
     // Compute the matrices
-    rotation[1] += 0.05;
+    // rotation[1] += 0.05;
     // matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     // matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     // matrix = m4.xRotate(matrix, rotation[0]);
@@ -179,6 +199,8 @@ function render() {
     // gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.CULL_FACE); //enable depth buffer
+    gl.enable(gl.DEPTH_TEST);
     // gl.drawArrays(primitiveType, offset, count);
     drawO();
     drawH(2);
@@ -199,8 +221,12 @@ function drawO() {
     count = 120;
     translation = shapeTranslation[1];
 
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     setGeometry(gl, 1);
-    setColors(gl);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    setColors(gl, 1);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -214,10 +240,14 @@ function drawO() {
 }
 
 function drawH(numH) {
-    count = 12;
+    count = 108;
     translation = shapeTranslation[numH];
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer2);
     setGeometry(gl, 2);
-    setColors(gl);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
+    setColors(gl, 2);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -560,6 +590,134 @@ function setGeometry(gl, shape) {
                     60, 70, 0,
                     60, 40, 0,
                     30, 40, 0,
+
+                    //front-right
+                    90, 0, 0,
+                    60, 0, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    90, 110, 0,
+                    90, 0, 0,
+
+                    //back-left
+                    0, 0, 30,
+                    30, 0, 30,
+                    0, 110, 30,
+                    0, 110, 30,
+                    30, 0, 30,
+                    30, 110, 30,
+
+                    //back-middle
+                    30, 40, 30,
+                    60, 40, 30,
+                    30, 70, 30,
+                    30, 70, 30,
+                    60, 40, 30,
+                    60, 70, 30,
+
+                    //back-right
+                    60, 0, 30,
+                    90, 0, 30,
+                    60, 110, 30,
+                    60, 110, 30,
+                    90, 0, 30,
+                    90, 110, 30,
+
+                    //top-left
+                    0, 0, 0,
+                    30, 0, 0,
+                    30, 0, 30,
+                    0, 0, 0,
+                    30, 0, 30,
+                    0, 0, 30,
+
+                    //top-middle
+                    30, 40, 0,
+                    60, 40, 0,
+                    60, 40, 30,
+                    30, 40, 0,
+                    60, 40, 30,
+                    30, 40, 30,
+
+                    //top-right
+                    60, 0, 0,
+                    90, 0, 0,
+                    90, 0, 30,
+                    60, 0, 0,
+                    90, 0, 30,
+                    60, 0, 30,
+
+                    //outer-right
+                    90, 0, 30,
+                    90, 0, 0,
+                    90, 110, 0,
+                    90, 110, 0,
+                    90, 110, 30,
+                    90, 0, 30,
+
+                    //bottom-right
+                    90, 110, 30,
+                    90, 110, 0,
+                    60, 110, 0,
+                    60, 110, 0,
+                    60, 110, 30,
+                    90, 110, 30,
+
+                    //bottom-middle
+                    60, 70, 30,
+                    60, 70, 0,
+                    30, 70, 0,
+                    30, 70, 0,
+                    30, 70, 30,
+                    60, 70, 30,
+
+                    //bottom-left
+                    30, 110, 30,
+                    30, 110, 0,
+                    0, 110, 0,
+                    0, 110, 0,
+                    0, 110, 30,
+                    30, 110, 30,
+
+                    //outer-left
+                    0, 110, 30,
+                    0, 110, 0,
+                    0, 0, 0,
+                    0, 0, 0,
+                    0, 0, 30,
+                    0, 110, 30,
+
+                    //inner-top-left
+                    30, 0, 0,
+                    30, 40, 30,
+                    30, 0, 30,
+                    30, 0, 0,
+                    30, 40, 0,
+                    30, 40, 30,
+
+                    //inner-bottom-left
+                    30, 70, 0,
+                    30, 110, 30,
+                    30, 70, 30,
+                    30, 70, 0,
+                    30, 110, 0,
+                    30, 110, 30,
+
+                    //inner-top-right
+                    60, 0, 30,
+                    60, 40, 0,
+                    60, 0, 0,
+                    60, 0, 30,
+                    60, 40, 30,
+                    60, 40, 0,
+
+                    //inner-bottom-right
+                    60, 70, 30,
+                    60, 110, 0,
+                    60, 70, 0,
+                    60, 70, 30,
+                    60, 110, 30,
+                    60, 110, 0,
                 ]),
                 gl.STATIC_DRAW);
             break;
@@ -567,168 +725,322 @@ function setGeometry(gl, shape) {
 }
 
 // Fill the buffer with colors for the 'F'.
-function setColors(gl) {
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Uint8Array([
-            //front-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+function setColors(gl, shape) {
+    switch (shape) {
+        case 1:
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //front-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //front-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-left
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-left
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-top
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-top
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-right
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-right
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //back-bottom
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
-            242, 230, 4,
+                    //back-bottom
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
+                    242, 230, 4,
 
-            //top-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //top-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //top-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-right-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-right-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-right
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-right
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-center
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-center
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //bottom-left
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //bottom-left
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //outer-left-side
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
-            174, 163, 2,
+                    //outer-left-side
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
+                    174, 163, 2,
 
-            //inner-bottom
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-bottom
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-left
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-left
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-top
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
+                    //inner-top
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
 
-            //inner-right
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,
-            116, 107, 0,]),
-        gl.STATIC_DRAW);
+                    //inner-right
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,
+                    116, 107, 0,]),
+                gl.STATIC_DRAW);
+            break;
+        case 2:
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    //front-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //front-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-left
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-middle
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //back-right
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+                    0, 151, 252,
+
+                    //top-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //top-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-right
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-middle
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //bottom-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //outer-left
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+                    0, 87, 181,
+
+                    //inner-top-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-left
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-top-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+
+                    //inner-bottom-right
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,
+                    0, 44, 120,]),
+                gl.STATIC_DRAW);
+            break;
+    }
+
 }

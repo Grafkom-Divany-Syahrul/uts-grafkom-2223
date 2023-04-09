@@ -100,7 +100,7 @@ window.onload = function init() {
     var bufferId = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
 
-    setGeometry(gl);
+    // setGeometry(gl);
 
     // Associate out shader variables with our data buffer
     var vPosition = gl.getAttribLocation(program, "vPosition");
