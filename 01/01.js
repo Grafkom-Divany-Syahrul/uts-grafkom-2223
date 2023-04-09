@@ -75,6 +75,7 @@ window.onload = function init() {
         scaleY.innerHTML = scale[1];
         angleValue.innerHTML = angleInRadians * 180 / Math.PI;
         renderValue = this.value;
+        console.log(renderValue);
         requestAnimationFrame(render);
     }
 
@@ -100,7 +101,7 @@ window.onload = function init() {
     var bufferId = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
 
-    setGeometry(gl);
+    // setGeometry(gl);
 
     // Menghubungkan variabel shader dengan buffer data
     var vPosition = gl.getAttribLocation(program, "vPosition");
@@ -228,11 +229,11 @@ function render(timestamp) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.clearColor(0.83, 0.99, 0.91, 1);
 
-    if (renderValue === 1) {
+    if (renderValue == 1) {
         drawStar();
         drawRectangle();
         drawTriangle();
-    } else if (renderValue === 2) {
+    } else if (renderValue == 2) {
         drawTriangle();
         drawStar();
         drawRectangle();

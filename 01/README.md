@@ -8,7 +8,7 @@ Membuat sebuah game 2D yang menyediakan 3 objek yaitu: Segitiga, Persegi Panjang
 - [x] Menyediakan Button Group untuk memilih objek mana yang akan di transformasi
 - [x] Menyediakan Slider untuk menentukan besaran transformasi yang akan dilakukan terhadap objek yang sudah dipilih dengan button
 - [x] Membuat slider hanya mengubah transformasi untuk objek yang dipilih
-- [ ] Modifikasi UI
+- [x] Modifikasi UI
 ## Current Problems
 (Check if solved)
 - [ ] Slidernya membesar mengecil jumlah angkanya (Pengennya konsisten)

@@ -7,11 +7,26 @@ var primitiveType;
 var offset = 0;
 var count = 108;
 
-
 var translation = [300, 150, 0]; //top-left-depth of F
 var rotation = [0, 0, 0];
 var rotationO = [0, 0, 0];
+var centerO = [0, 0, 0];
+var centerH = [0, 0, 0];
 var scale = [1.0, 1.0, 1.0]; //default scale
+
+var fieldOfViewRadians = degToRad(60);
+// Compute the projection matrix
+var aspect;
+var zNear = 1;
+var zFar = 2000;
+var isDefaultCamera = true;
+var cameraFocus = 0;
+
+var oxygenRevolution = [
+    [degToRad(-30), degToRad(30)],
+    [degToRad(-150), degToRad(150)],
+];
+var oxygenRevSpeed = [0.05, degToRad(30) / 100];
 
 var angleInRadians = 0;
 var centerO = [0, 0, 0];
@@ -32,11 +47,21 @@ var projectionMatrix;
 var positionBuffers = {};
 var colorBuffers = {};
 
-// 1 = O, 2 = h1, 3 = h2
+var revolutionH1 = 1;
+var revolutionH2 = 1;
+
+var orbitRadiusH1 = 130;
+var orbitRadiusH2 = 130;
+var orbitAngleH1 = 0;
+var orbitAngleH2 = 0;
+var orbitSpeedH1 = 2; // Kecepatan sudut dalam derajat per frame
+var orbitSpeedH2 = 2;
+
+// 0 = O, 1 = h1, 2 = h2
 var shapeTranslation = {
-    1: [300, 150, 0],
-    2: [100, 50, 0],
-    3: [600, 50, 0],
+    0: [300, 190, 0],
+    1: [170, 50, 100],
+    2: [580, 50, -100],
 }
 
 window.onload = function init() {
@@ -44,6 +69,24 @@ window.onload = function init() {
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
+
+    aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
+
+    var button = document.getElementsByClassName("button");
+    var addSelectClass = function () {
+        removeSelectClass();
+        this.classList.add('selected');
+    }
+
+    var removeSelectClass = function () {
+        for (var i = 0; i < button.length; i++) {
+            button[i].classList.remove('selected')
+        }
+    }
+
+    for (var i = 0; i < button.length; i++) {
+        button[i].addEventListener("click", addSelectClass);
+    }
 
     //
     //  Configure WebGL
@@ -85,95 +128,26 @@ window.onload = function init() {
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    //Update  X according to X slider
-    var Xvalue = document.getElementById("Xvalue");
-    Xvalue.innerHTML = translation[0];
-    document.getElementById("sliderX").onchange = function (event) {
-        translation[0] = event.target.value;
-        Xvalue.innerHTML = translation[0];
-        requestAnimationFrame(render);
-    };
+    rotation = [degToRad(15), degToRad(11), degToRad(12)];
 
-    //Update Y according to Y slider
-    var Yvalue = document.getElementById("Yvalue");
-    Yvalue.innerHTML = translation[1];
-    document.getElementById("sliderY").onchange = function (event) {
-        translation[1] = event.target.value;
-        Yvalue.innerHTML = translation[1];
-        requestAnimationFrame(render);
-    };
+    document.getElementById("defaultViewButton").addEventListener("click", function () {
+        isDefaultCamera = true;
+    });
 
-    var Zvalue = document.getElementById("Zvalue");
-    Zvalue.innerHTML = translation[2];
-    document.getElementById("sliderZ").onchange = function (event) {
-        translation[2] = event.target.value;
-        Zvalue.innerHTML = translation[2];
-        requestAnimationFrame(render);
-    };
+    document.getElementById("oxygenViewButton").addEventListener("click", function () {
+        isDefaultCamera = false;
+        cameraFocus = 0;
+    });
 
-    //Update rotation angle according to angle slider
+    document.getElementById("hydrogen1ViewButton").addEventListener("click", function () {
+        isDefaultCamera = false;
+        cameraFocus = 1;
+    });
 
-    // rotation = [degToRad(40), degToRad(25), degToRad(325)];
-
-    //rotation X
-    var angleXValue = document.getElementById("AXvalue");
-    angleXValue.innerHTML = radToDeg(rotation[0]);
-    document.getElementById("sliderAX").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[0] = angleInRadians;
-        angleXValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Y
-    var angleYValue = document.getElementById("AYvalue");
-    angleYValue.innerHTML = radToDeg(rotation[1]);
-    document.getElementById("sliderAY").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[1] = angleInRadians;
-        angleYValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Z
-    var angleZValue = document.getElementById("AZvalue");
-    angleZValue.innerHTML = radToDeg(rotation[2]);
-    document.getElementById("sliderAZ").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[2] = angleInRadians;
-        angleZValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-
-
-    //Update scaleX according to scaleX slider
-    var scaleX = document.getElementById("scaleX");
-    scaleX.innerHTML = scale[0];
-    document.getElementById("sliderscaleX").onchange = function (event) {
-        scale[0] = event.target.value;
-        scaleX.innerHTML = scale[0];
-        requestAnimationFrame(render);
-    };
-
-
-    //Update scaleY according to scaleY slider
-    var scaleY = document.getElementById("scaleY");
-    scaleY.innerHTML = scale[1];
-    document.getElementById("sliderscaleY").onchange = function (event) {
-        scale[1] = event.target.value;
-        scaleY.innerHTML = scale[1];
-        requestAnimationFrame(render);
-    };
-
-    //Update scaleZ according to scaleZ slider
-    var scaleZ = document.getElementById("scaleZ");
-    scaleZ.innerHTML = scale[2];
-    document.getElementById("sliderscaleZ").onchange = function (event) {
-        scale[2] = event.target.value;
-        scaleZ.innerHTML = scale[2];
-        requestAnimationFrame(render);
-    };
+    document.getElementById("hydrogen2ViewButton").addEventListener("click", function () {
+        isDefaultCamera = false;
+        cameraFocus = 2
+    });
 
 
     primitiveType = gl.TRIANGLES;
@@ -181,24 +155,23 @@ window.onload = function init() {
 }
 
 function render() {
-    // Update rotationO
-    var angleInDegrees = 30;
-    var angleInRadians = degToRad(angleInDegrees);
-    rotationO[1] += angleInRadians / 60; // Rotate counter-clockwise around the Z-axis
-
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE); //enable depth buffer
     gl.enable(gl.DEPTH_TEST);
-    drawO();
-    
-    // Update sudut rotasi untuk huruf "H"
-    angleH += rotationSpeed;
-    
-    drawH(2, angleH);
-    drawH(3, -angleH); // Gunakan sudut rotasi negatif untuk huruf "H" kedua agar berotasi ke arah berlawanan
+
+    // Update rotationO
+    var angleInDegrees = 30;
+    var angleInRadians = degToRad(angleInDegrees);
+    rotationO[1] += angleInRadians / 10;// Rotate counter-clockwise around the Z-axis
+    rotation[1] -= 0.05;
+
+
+    drawO(); // Draw the 'O' object
+    drawH(2); // Draw the 'H' object
+    drawH(1); // Draw the 'H' object
+
     requestAnimationFrame(render); //refresh
 }
-
 
 function radToDeg(r) {
     return r * 180 / Math.PI;
@@ -206,6 +179,121 @@ function radToDeg(r) {
 
 function degToRad(d) {
     return d * Math.PI / 180;
+}
+
+function drawO() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[1]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[1]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    translation = shapeTranslation[0];
+
+    var projectionMatrix = m4.perspective(
+        fieldOfViewRadians,
+        aspect,
+        zNear,
+        zFar
+    );
+
+    var cameraMatrix = m4.lookAt(
+        vec3(...shapeTranslation[cameraFocus]),
+        vec3(...[0, 0, 0]),
+        vec3(0, 1, 0)
+    );
+
+    // Make a view matrix from the camera matrix
+    var viewMatrix = m4.inverse(cameraMatrix);
+
+
+    // Compute a view projection matrix
+    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
+    matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+
+    // enable or disable default camera
+    if (!isDefaultCamera) {
+        matrix = viewProjectionMatrix;
+    }
+
+    // Translate ke titik tengah huruf "O"
+    matrix = m4.translate(matrix, translation[0] + centerO[0], translation[1] + centerO[1], translation[2] + centerO[2]);
+
+    // Lakukan rotasi di sekitar sumbu Y
+    matrix = m4.zRotate(matrix, 0);
+    matrix = m4.xRotate(matrix, 10);
+    matrix = m4.yRotate(matrix, rotationO[1]);
+
+    // Translate kembali ke posisi awal
+    matrix = m4.translate(matrix, -centerO[0], -centerO[1], -centerO[2]);
+
+    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+
+    gl.uniformMatrix4fv(matrixLocation, false, matrix);
+    gl.drawArrays(primitiveType, offset, 120); // Update count value
+}
+
+function drawH(numH) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[2]);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[2]);
+    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    var projectionMatrix = m4.perspective(
+        fieldOfViewRadians,
+        aspect,
+        zNear,
+        zFar
+    );
+
+    var cameraMatrix = m4.lookAt(
+        vec3(...shapeTranslation[cameraFocus]),
+        vec3(...[0, 0, 0]),
+        vec3(0, 1, 0)
+    );
+
+    // Make a view matrix from the camera matrix
+    var viewMatrix = m4.inverse(cameraMatrix);
+
+    // Compute a view projection matrix
+    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
+    translation = shapeTranslation[numH];
+    var translationO = shapeTranslation[0];
+    var centerOWorld = [translationO[0] + centerO[0], translationO[1] + centerO[1], translationO[2] + centerO[2]];
+
+    const revRadius = 180;
+    translation[0] =
+        revRadius *
+        Math.sin(oxygenRevolution[numH - 1][0]) *
+        Math.cos(oxygenRevolution[numH - 1][1]) +
+        centerOWorld[0];
+    translation[1] =
+        revRadius *
+        Math.sin(oxygenRevolution[numH - 1][0]) *
+        Math.sin(oxygenRevolution[numH - 1][1]) +
+        centerOWorld[1] - 50;
+    translation[2] = revRadius * Math.cos(oxygenRevolution[numH - 1][0]);
+
+    oxygenRevolution[numH - 1][0] += (numH === 1 ? -1 : 1) * oxygenRevSpeed[0];
+    oxygenRevolution[numH - 1][1] += (numH === 1 ? 1 : -1) * oxygenRevSpeed[1];
+
+    matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+
+    // enable or disable default camera
+    if (!isDefaultCamera) {
+        matrix = viewProjectionMatrix;
+    }
+    matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
+    matrix = m4.xRotate(matrix, rotation[0]);
+    matrix = m4.yRotate(matrix, rotation[1]);
+    matrix = m4.zRotate(matrix, rotation[2]);
+    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+
+    gl.uniformMatrix4fv(matrixLocation, false, matrix);
+    gl.drawArrays(primitiveType, offset, 108); // Update count value
 }
 
 function drawO() {
@@ -400,6 +488,188 @@ var m4 = {
         return m4.multiply(m, m4.scaling(sx, sy, sz));
     },
 
+    inverse: function (m) {
+        var m00 = m[0 * 4 + 0];
+        var m01 = m[0 * 4 + 1];
+        var m02 = m[0 * 4 + 2];
+        var m03 = m[0 * 4 + 3];
+        var m10 = m[1 * 4 + 0];
+        var m11 = m[1 * 4 + 1];
+        var m12 = m[1 * 4 + 2];
+        var m13 = m[1 * 4 + 3];
+        var m20 = m[2 * 4 + 0];
+        var m21 = m[2 * 4 + 1];
+        var m22 = m[2 * 4 + 2];
+        var m23 = m[2 * 4 + 3];
+        var m30 = m[3 * 4 + 0];
+        var m31 = m[3 * 4 + 1];
+        var m32 = m[3 * 4 + 2];
+        var m33 = m[3 * 4 + 3];
+        var tmp_0 = m22 * m33;
+        var tmp_1 = m32 * m23;
+        var tmp_2 = m12 * m33;
+        var tmp_3 = m32 * m13;
+        var tmp_4 = m12 * m23;
+        var tmp_5 = m22 * m13;
+        var tmp_6 = m02 * m33;
+        var tmp_7 = m32 * m03;
+        var tmp_8 = m02 * m23;
+        var tmp_9 = m22 * m03;
+        var tmp_10 = m02 * m13;
+        var tmp_11 = m12 * m03;
+        var tmp_12 = m20 * m31;
+        var tmp_13 = m30 * m21;
+        var tmp_14 = m10 * m31;
+        var tmp_15 = m30 * m11;
+        var tmp_16 = m10 * m21;
+        var tmp_17 = m20 * m11;
+        var tmp_18 = m00 * m31;
+        var tmp_19 = m30 * m01;
+        var tmp_20 = m00 * m21;
+        var tmp_21 = m20 * m01;
+        var tmp_22 = m00 * m11;
+        var tmp_23 = m10 * m01;
+
+        var t0 =
+            tmp_0 * m11 +
+            tmp_3 * m21 +
+            tmp_4 * m31 -
+            (tmp_1 * m11 + tmp_2 * m21 + tmp_5 * m31);
+        var t1 =
+            tmp_1 * m01 +
+            tmp_6 * m21 +
+            tmp_9 * m31 -
+            (tmp_0 * m01 + tmp_7 * m21 + tmp_8 * m31);
+        var t2 =
+            tmp_2 * m01 +
+            tmp_7 * m11 +
+            tmp_10 * m31 -
+            (tmp_3 * m01 + tmp_6 * m11 + tmp_11 * m31);
+        var t3 =
+            tmp_5 * m01 +
+            tmp_8 * m11 +
+            tmp_11 * m21 -
+            (tmp_4 * m01 + tmp_9 * m11 + tmp_10 * m21);
+
+        var d = 1.0 / (m00 * t0 + m10 * t1 + m20 * t2 + m30 * t3);
+
+        return [
+            d * t0,
+            d * t1,
+            d * t2,
+            d * t3,
+            d *
+            (tmp_1 * m10 +
+                tmp_2 * m20 +
+                tmp_5 * m30 -
+                (tmp_0 * m10 + tmp_3 * m20 + tmp_4 * m30)),
+            d *
+            (tmp_0 * m00 +
+                tmp_7 * m20 +
+                tmp_8 * m30 -
+                (tmp_1 * m00 + tmp_6 * m20 + tmp_9 * m30)),
+            d *
+            (tmp_3 * m00 +
+                tmp_6 * m10 +
+                tmp_11 * m30 -
+                (tmp_2 * m00 + tmp_7 * m10 + tmp_10 * m30)),
+            d *
+            (tmp_4 * m00 +
+                tmp_9 * m10 +
+                tmp_10 * m20 -
+                (tmp_5 * m00 + tmp_8 * m10 + tmp_11 * m20)),
+            d *
+            (tmp_12 * m13 +
+                tmp_15 * m23 +
+                tmp_16 * m33 -
+                (tmp_13 * m13 + tmp_14 * m23 + tmp_17 * m33)),
+            d *
+            (tmp_13 * m03 +
+                tmp_18 * m23 +
+                tmp_21 * m33 -
+                (tmp_12 * m03 + tmp_19 * m23 + tmp_20 * m33)),
+            d *
+            (tmp_14 * m03 +
+                tmp_19 * m13 +
+                tmp_22 * m33 -
+                (tmp_15 * m03 + tmp_18 * m13 + tmp_23 * m33)),
+            d *
+            (tmp_17 * m03 +
+                tmp_20 * m13 +
+                tmp_23 * m23 -
+                (tmp_16 * m03 + tmp_21 * m13 + tmp_22 * m23)),
+            d *
+            (tmp_14 * m22 +
+                tmp_17 * m32 +
+                tmp_13 * m12 -
+                (tmp_16 * m32 + tmp_12 * m12 + tmp_15 * m22)),
+            d *
+            (tmp_20 * m32 +
+                tmp_12 * m02 +
+                tmp_19 * m22 -
+                (tmp_18 * m22 + tmp_21 * m32 + tmp_13 * m02)),
+            d *
+            (tmp_18 * m12 +
+                tmp_23 * m32 +
+                tmp_15 * m02 -
+                (tmp_22 * m32 + tmp_14 * m02 + tmp_19 * m12)),
+            d *
+            (tmp_22 * m22 +
+                tmp_16 * m02 +
+                tmp_21 * m12 -
+                (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02)),
+        ];
+    },
+
+    perspective: function (fieldOfViewInRadians, aspect, near, far) {
+        var f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
+        var rangeInv = 1.0 / (near - far);
+
+        return [
+            f / aspect,
+            0,
+            0,
+            0,
+            0,
+            f,
+            0,
+            0,
+            0,
+            0,
+            (near + far) * rangeInv,
+            -1,
+            0,
+            0,
+            near * far * rangeInv * 2,
+            0,
+        ];
+    },
+
+    lookAt: function (cameraPosition, target, up) {
+        var zAxis = normalize(subtract(cameraPosition, target));
+        var xAxis = cross(up, zAxis);
+        var yAxis = cross(zAxis, xAxis);
+
+        return [
+            xAxis[0],
+            xAxis[1],
+            xAxis[2],
+            0,
+            yAxis[0],
+            yAxis[1],
+            yAxis[2],
+            0,
+            zAxis[0],
+            zAxis[1],
+            zAxis[2],
+            0,
+            cameraPosition[0],
+            cameraPosition[1],
+            cameraPosition[2],
+            1,
+        ];
+    },
+
 };
 
 function setGeometry(gl, shape, positionBuffer) {
@@ -407,172 +677,172 @@ function setGeometry(gl, shape, positionBuffer) {
     switch (shape) {
         case 1:
             var verticesO = [
-                    //front-left
-                    50, 0, 0,
-                    0, 40, 0,
-                    0, 140, 0,
-                    0, 140, 0,
-                    50, 180, 0,
-                    50, 0, 0,
+                //front-left
+                50, 0, 0,
+                0, 40, 0,
+                0, 140, 0,
+                0, 140, 0,
+                50, 180, 0,
+                50, 0, 0,
 
-                    //front-top
-                    50, 0, 0,
-                    50, 40, 0,
-                    100, 0, 0,
-                    50, 40, 0,
-                    100, 40, 0,
-                    100, 0, 0,
+                //front-top
+                50, 0, 0,
+                50, 40, 0,
+                100, 0, 0,
+                50, 40, 0,
+                100, 40, 0,
+                100, 0, 0,
 
-                    //front-right
-                    100, 0, 0,
-                    150, 140, 0,
-                    150, 40, 0,
-                    150, 140, 0,
-                    100, 0, 0,
-                    100, 180, 0,
+                //front-right
+                100, 0, 0,
+                150, 140, 0,
+                150, 40, 0,
+                150, 140, 0,
+                100, 0, 0,
+                100, 180, 0,
 
-                    //front-bottom
-                    100, 180, 0,
-                    100, 140, 0,
-                    50, 140, 0,
-                    50, 140, 0,
-                    50, 180, 0,
-                    100, 180, 0,
+                //front-bottom
+                100, 180, 0,
+                100, 140, 0,
+                50, 140, 0,
+                50, 140, 0,
+                50, 180, 0,
+                100, 180, 0,
 
-                    //back-left
-                    0, 40, 30,
-                    50, 0, 30,
-                    0, 140, 30,
-                    0, 140, 30,
-                    50, 0, 30,
-                    50, 180, 30,
+                //back-left
+                0, 40, 30,
+                50, 0, 30,
+                0, 140, 30,
+                0, 140, 30,
+                50, 0, 30,
+                50, 180, 30,
 
-                    //back-top
-                    50, 0, 30,
-                    100, 0, 30,
-                    50, 40, 30,
-                    50, 40, 30,
-                    100, 0, 30,
-                    100, 40, 30,
+                //back-top
+                50, 0, 30,
+                100, 0, 30,
+                50, 40, 30,
+                50, 40, 30,
+                100, 0, 30,
+                100, 40, 30,
 
-                    //back-right
-                    100, 0, 30,
-                    150, 40, 30,
-                    100, 180, 30,
-                    100, 180, 30,
-                    150, 40, 30,
-                    150, 140, 30,
+                //back-right
+                100, 0, 30,
+                150, 40, 30,
+                100, 180, 30,
+                100, 180, 30,
+                150, 40, 30,
+                150, 140, 30,
 
-                    //back-bottom
-                    50, 140, 30,
-                    100, 140, 30,
-                    50, 180, 30,
-                    50, 180, 30,
-                    100, 140, 30,
-                    100, 180, 30,
+                //back-bottom
+                50, 140, 30,
+                100, 140, 30,
+                50, 180, 30,
+                50, 180, 30,
+                100, 140, 30,
+                100, 180, 30,
 
-                    //top-left
-                    0, 40, 0,
-                    50, 0, 0,
-                    50, 0, 30,
-                    0, 40, 0,
-                    50, 0, 30,
-                    0, 40, 30,
+                //top-left
+                0, 40, 0,
+                50, 0, 0,
+                50, 0, 30,
+                0, 40, 0,
+                50, 0, 30,
+                0, 40, 30,
 
-                    //top-center
-                    50, 0, 30,
-                    50, 0, 0,
-                    100, 0, 0,
-                    100, 0, 0,
-                    100, 0, 30,
-                    50, 0, 30,
+                //top-center
+                50, 0, 30,
+                50, 0, 0,
+                100, 0, 0,
+                100, 0, 0,
+                100, 0, 30,
+                50, 0, 30,
 
-                    //top-right
-                    100, 0, 30,
-                    100, 0, 0,
-                    150, 40, 0,
-                    150, 40, 0,
-                    150, 40, 30,
-                    100, 0, 30,
+                //top-right
+                100, 0, 30,
+                100, 0, 0,
+                150, 40, 0,
+                150, 40, 0,
+                150, 40, 30,
+                100, 0, 30,
 
-                    //outer-right-side
-                    150, 40, 30,
-                    150, 40, 0,
-                    150, 140, 0,
-                    150, 140, 0,
-                    150, 140, 30,
-                    150, 40, 30,
+                //outer-right-side
+                150, 40, 30,
+                150, 40, 0,
+                150, 140, 0,
+                150, 140, 0,
+                150, 140, 30,
+                150, 40, 30,
 
-                    //bottom-right
-                    150, 140, 30,
-                    150, 140, 0,
-                    100, 180, 0,
-                    100, 180, 0,
-                    100, 180, 30,
-                    150, 140, 30,
+                //bottom-right
+                150, 140, 30,
+                150, 140, 0,
+                100, 180, 0,
+                100, 180, 0,
+                100, 180, 30,
+                150, 140, 30,
 
-                    //bottom-center
-                    100, 180, 30,
-                    100, 180, 0,
-                    50, 180, 0,
-                    50, 180, 0,
-                    50, 180, 30,
-                    100, 180, 30,
+                //bottom-center
+                100, 180, 30,
+                100, 180, 0,
+                50, 180, 0,
+                50, 180, 0,
+                50, 180, 30,
+                100, 180, 30,
 
-                    //bottom-left
-                    50, 180, 30,
-                    50, 180, 0,
-                    0, 140, 0,
-                    0, 140, 0,
-                    0, 140, 30,
-                    50, 180, 30,
+                //bottom-left
+                50, 180, 30,
+                50, 180, 0,
+                0, 140, 0,
+                0, 140, 0,
+                0, 140, 30,
+                50, 180, 30,
 
-                    //outer-left-side
-                    0, 140, 30,
-                    0, 140, 0,
-                    0, 40, 0,
-                    0, 40, 0,
-                    0, 40, 30,
-                    0, 140, 30,
+                //outer-left-side
+                0, 140, 30,
+                0, 140, 0,
+                0, 40, 0,
+                0, 40, 0,
+                0, 40, 30,
+                0, 140, 30,
 
-                    //inner-bottom
-                    50, 140, 30,
-                    50, 140, 0,
-                    100, 140, 0,
-                    100, 140, 0,
-                    100, 140, 30,
-                    50, 140, 30,
+                //inner-bottom
+                50, 140, 30,
+                50, 140, 0,
+                100, 140, 0,
+                100, 140, 0,
+                100, 140, 30,
+                50, 140, 30,
 
-                    //inner-left
-                    50, 40, 0,
-                    50, 140, 30,
-                    50, 40, 30,
-                    50, 40, 0,
-                    50, 140, 0,
-                    50, 140, 30,
+                //inner-left
+                50, 40, 0,
+                50, 140, 30,
+                50, 40, 30,
+                50, 40, 0,
+                50, 140, 0,
+                50, 140, 30,
 
-                    //inner-top
-                    50, 40, 0,
-                    50, 40, 30,
-                    100, 40, 30,
-                    50, 40, 0,
-                    100, 40, 30,
-                    100, 40, 0,
+                //inner-top
+                50, 40, 0,
+                50, 40, 30,
+                100, 40, 30,
+                50, 40, 0,
+                100, 40, 30,
+                100, 40, 0,
 
-                    //inner-right
-                    100, 40, 30,
-                    100, 140, 0,
-                    100, 40, 0,
-                    100, 40, 30,
-                    100, 140, 30,
-                    100, 140, 0,
+                //inner-right
+                100, 40, 30,
+                100, 140, 0,
+                100, 40, 0,
+                100, 40, 30,
+                100, 140, 30,
+                100, 140, 0,
 
-                ]
+            ]
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array(verticesO),
                 gl.STATIC_DRAW);
-             // Hitung titik tengah huruf "O"
+            // Hitung titik tengah huruf "O"
             var minX = Infinity;
             var maxX = -Infinity;
             var minY = Infinity;
@@ -594,154 +864,179 @@ function setGeometry(gl, shape, positionBuffer) {
 
             break;
         case 2:
+            var verticesH = [
+                //front-left
+                30, 0, 0,
+                0, 0, 0,
+                0, 110, 0,
+                0, 110, 0,
+                30, 110, 0,
+                30, 0, 0,
+
+                // front-middle
+                30, 40, 0,
+                30, 70, 0,
+                60, 70, 0,
+                60, 70, 0,
+                60, 40, 0,
+                30, 40, 0,
+
+                //front-right
+                90, 0, 0,
+                60, 0, 0,
+                60, 110, 0,
+                60, 110, 0,
+                90, 110, 0,
+                90, 0, 0,
+
+                //back-left
+                0, 0, 30,
+                30, 0, 30,
+                0, 110, 30,
+                0, 110, 30,
+                30, 0, 30,
+                30, 110, 30,
+
+                //back-middle
+                30, 40, 30,
+                60, 40, 30,
+                30, 70, 30,
+                30, 70, 30,
+                60, 40, 30,
+                60, 70, 30,
+
+                //back-right
+                60, 0, 30,
+                90, 0, 30,
+                60, 110, 30,
+                60, 110, 30,
+                90, 0, 30,
+                90, 110, 30,
+
+                //top-left
+                0, 0, 0,
+                30, 0, 0,
+                30, 0, 30,
+                0, 0, 0,
+                30, 0, 30,
+                0, 0, 30,
+
+                //top-middle
+                30, 40, 0,
+                60, 40, 0,
+                60, 40, 30,
+                30, 40, 0,
+                60, 40, 30,
+                30, 40, 30,
+
+                //top-right
+                60, 0, 0,
+                90, 0, 0,
+                90, 0, 30,
+                60, 0, 0,
+                90, 0, 30,
+                60, 0, 30,
+
+                //outer-right
+                90, 0, 30,
+                90, 0, 0,
+                90, 110, 0,
+                90, 110, 0,
+                90, 110, 30,
+                90, 0, 30,
+
+                //bottom-right
+                90, 110, 30,
+                90, 110, 0,
+                60, 110, 0,
+                60, 110, 0,
+                60, 110, 30,
+                90, 110, 30,
+
+                //bottom-middle
+                60, 70, 30,
+                60, 70, 0,
+                30, 70, 0,
+                30, 70, 0,
+                30, 70, 30,
+                60, 70, 30,
+
+                //bottom-left
+                30, 110, 30,
+                30, 110, 0,
+                0, 110, 0,
+                0, 110, 0,
+                0, 110, 30,
+                30, 110, 30,
+
+                //outer-left
+                0, 110, 30,
+                0, 110, 0,
+                0, 0, 0,
+                0, 0, 0,
+                0, 0, 30,
+                0, 110, 30,
+
+                //inner-top-left
+                30, 0, 0,
+                30, 40, 30,
+                30, 0, 30,
+                30, 0, 0,
+                30, 40, 0,
+                30, 40, 30,
+
+                //inner-bottom-left
+                30, 70, 0,
+                30, 110, 30,
+                30, 70, 30,
+                30, 70, 0,
+                30, 110, 0,
+                30, 110, 30,
+
+                //inner-top-right
+                60, 0, 30,
+                60, 40, 0,
+                60, 0, 0,
+                60, 0, 30,
+                60, 40, 30,
+                60, 40, 0,
+
+                //inner-bottom-right
+                60, 70, 30,
+                60, 110, 0,
+                60, 70, 0,
+                60, 70, 30,
+                60, 110, 30,
+                60, 110, 0,
+            ]
             gl.bufferData( // set the buffer data for the shape to be a letter 'H'
                 gl.ARRAY_BUFFER,
-                new Float32Array([
-                    //front-left
-                    30, 0, 0,
-                    0, 0, 0,
-                    0, 110, 0,
-                    0, 110, 0,
-                    30, 110, 0,
-                    30, 0, 0,
-
-                    // front-middle
-                    30, 40, 0,
-                    30, 70, 0,
-                    60, 70, 0,
-                    60, 70, 0,
-                    60, 40, 0,
-                    30, 40, 0,
-
-                    //front-right
-                    90, 0, 0,
-                    60, 0, 0,
-                    60, 110, 0,
-                    60, 110, 0,
-                    90, 110, 0,
-                    90, 0, 0,
-
-                    //back-left
-                    0, 0, 30,
-                    30, 0, 30,
-                    0, 110, 30,
-                    0, 110, 30,
-                    30, 0, 30,
-                    30, 110, 30,
-
-                    //back-middle
-                    30, 40, 30,
-                    60, 40, 30,
-                    30, 70, 30,
-                    30, 70, 30,
-                    60, 40, 30,
-                    60, 70, 30,
-
-                    //back-right
-                    60, 0, 30,
-                    90, 0, 30,
-                    60, 110, 30,
-                    60, 110, 30,
-                    90, 0, 30,
-                    90, 110, 30,
-
-                    //top-left
-                    0, 0, 0,
-                    30, 0, 0,
-                    30, 0, 30,
-                    0, 0, 0,
-                    30, 0, 30,
-                    0, 0, 30,
-
-                    //top-middle
-                    30, 40, 0,
-                    60, 40, 0,
-                    60, 40, 30,
-                    30, 40, 0,
-                    60, 40, 30,
-                    30, 40, 30,
-
-                    //top-right
-                    60, 0, 0,
-                    90, 0, 0,
-                    90, 0, 30,
-                    60, 0, 0,
-                    90, 0, 30,
-                    60, 0, 30,
-
-                    //outer-right
-                    90, 0, 30,
-                    90, 0, 0,
-                    90, 110, 0,
-                    90, 110, 0,
-                    90, 110, 30,
-                    90, 0, 30,
-
-                    //bottom-right
-                    90, 110, 30,
-                    90, 110, 0,
-                    60, 110, 0,
-                    60, 110, 0,
-                    60, 110, 30,
-                    90, 110, 30,
-
-                    //bottom-middle
-                    60, 70, 30,
-                    60, 70, 0,
-                    30, 70, 0,
-                    30, 70, 0,
-                    30, 70, 30,
-                    60, 70, 30,
-
-                    //bottom-left
-                    30, 110, 30,
-                    30, 110, 0,
-                    0, 110, 0,
-                    0, 110, 0,
-                    0, 110, 30,
-                    30, 110, 30,
-
-                    //outer-left
-                    0, 110, 30,
-                    0, 110, 0,
-                    0, 0, 0,
-                    0, 0, 0,
-                    0, 0, 30,
-                    0, 110, 30,
-
-                    //inner-top-left
-                    30, 0, 0,
-                    30, 40, 30,
-                    30, 0, 30,
-                    30, 0, 0,
-                    30, 40, 0,
-                    30, 40, 30,
-
-                    //inner-bottom-left
-                    30, 70, 0,
-                    30, 110, 30,
-                    30, 70, 30,
-                    30, 70, 0,
-                    30, 110, 0,
-                    30, 110, 30,
-
-                    //inner-top-right
-                    60, 0, 30,
-                    60, 40, 0,
-                    60, 0, 0,
-                    60, 0, 30,
-                    60, 40, 30,
-                    60, 40, 0,
-
-                    //inner-bottom-right
-                    60, 70, 30,
-                    60, 110, 0,
-                    60, 70, 0,
-                    60, 70, 30,
-                    60, 110, 30,
-                    60, 110, 0,
-                ]),
+                new Float32Array(verticesH),
                 gl.STATIC_DRAW);
+
+            // Hitung titik tengah huruf "H"
+            var minX = Infinity;
+            var maxX = -Infinity;
+            var minY = Infinity;
+            var maxY = -Infinity;
+            var minZ = Infinity;
+            var maxZ = -Infinity;
+
+            for (var i = 0; i < verticesH.length; i += 3) {
+                var x = verticesH[i];
+                var y = verticesH[i + 1];
+                var z = verticesH[i + 2];
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+                if (z < minZ) minZ = z;
+                if (z > maxZ) maxZ = z;
+            }
+
+            centerH = [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2];
+
             break;
     }
 }
@@ -1066,4 +1361,5 @@ function setColors(gl, shape, colorBuffer) {
                 gl.STATIC_DRAW);
             break;
     }
+
 }
