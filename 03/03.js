@@ -55,19 +55,19 @@ window.onload = function init() {
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
-    setGeometry(gl, 1 );
+    // setGeometry(gl, 1 );
 
 
-    var colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    // var colorBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
-    // Associate out shader variables with our data buffer
+    // // Associate out shader variables with our data buffer
 
-    var colorLocation = gl.getAttribLocation(program, "a_color");
-    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-    gl.enableVertexAttribArray(colorLocation);
+    // var colorLocation = gl.getAttribLocation(program, "a_color");
+    // gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    // gl.enableVertexAttribArray(colorLocation);
 
-    setColors(gl);
+    // setColors(gl);
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
@@ -200,7 +200,7 @@ function drawO() {
     translation = shapeTranslation[1];
 
     setGeometry(gl, 1);
-    setColors(gl);
+    // setColors(gl);
 
     matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
