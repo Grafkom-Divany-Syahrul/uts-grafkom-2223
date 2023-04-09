@@ -11,41 +11,17 @@ var count = 108;
 var translation = [300, 150, 0]; //top-left-depth of F
 var rotation = [0, 0, 0];
 var rotationO = [0, 0, 0];
+var centerO = [0, 0, 0];
+var centerH = [0, 0, 0];
 var scale = [1.0, 1.0, 1.0]; //default scale
-
-// default position modifier matrices
-var rootTranslation = [
-  [100, 100, 0],
-  [400, 100, 0],
-  [400, 100, 0],
-];
-var rootRotation = [
-  [1, 0, 0],
-  [1, 0, 0],
-  [1, 0, 0],
-];
-var rootScale = [
-  [1.0, 1.0, 1.0],
-  [1.0, 1.0, 1.0],
-  [1.0, 1.0, 1.0],
-];
 
 var oxygenRevolution = [
   [degToRad(-30), degToRad(30)],
   [degToRad(-150), degToRad(150)],
 ];
-var oxygenRevSpeed = [0.01, degToRad(30) / 100];
-let origin = [];
-
+var oxygenRevSpeed = [0.05, degToRad(30) / 100];
 
 var angleInRadians = 0;
-var centerO = [0, 0, 0];
-var centerH = [0, 0, 0];
-var angleH = 0;
-var rotationSpeed = 0.01; // Kecepatan rotasi dalam radians per frame
-
-var shiftAngle = 0;
-var shiftSpeed = 15; // Pergeseran 15 derajat setelah satu revolusi
 
 var matrix;
 var matrixLocation;
@@ -58,11 +34,21 @@ var projectionMatrix;
 var positionBuffers = {};
 var colorBuffers = {};
 
-// 1 = O, 2 = h1, 3 = h2
+var revolutionH1 = 1;
+var revolutionH2 = 1;
+
+var orbitRadiusH1 = 130;
+var orbitRadiusH2 = 130;
+var orbitAngleH1 = 0;
+var orbitAngleH2 = 0;
+var orbitSpeedH1 = 2; // Kecepatan sudut dalam derajat per frame
+var orbitSpeedH2 = 2;
+
+// 0 = O, 1 = h1, 2 = h2
 var shapeTranslation = {
-    0: [300, 150, 0],
-    1: [100, 50, 0],
-    2: [600, 50, 0],
+    0: [300, 190, 0],
+    1: [170, 50, 100],
+    2: [580, 50, -100],
 }
 
 window.onload = function init() {
@@ -111,119 +97,30 @@ window.onload = function init() {
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    //Update  X according to X slider
-    var Xvalue = document.getElementById("Xvalue");
-    Xvalue.innerHTML = translation[0];
-    document.getElementById("sliderX").onchange = function (event) {
-        translation[0] = event.target.value;
-        Xvalue.innerHTML = translation[0];
-        requestAnimationFrame(render);
-    };
-
-    //Update Y according to Y slider
-    var Yvalue = document.getElementById("Yvalue");
-    Yvalue.innerHTML = translation[1];
-    document.getElementById("sliderY").onchange = function (event) {
-        translation[1] = event.target.value;
-        Yvalue.innerHTML = translation[1];
-        requestAnimationFrame(render);
-    };
-
-    var Zvalue = document.getElementById("Zvalue");
-    Zvalue.innerHTML = translation[2];
-    document.getElementById("sliderZ").onchange = function (event) {
-        translation[2] = event.target.value;
-        Zvalue.innerHTML = translation[2];
-        requestAnimationFrame(render);
-    };
-
-    //Update rotation angle according to angle slider
-
-    // rotation = [degToRad(40), degToRad(25), degToRad(325)];
-
-    //rotation X
-    var angleXValue = document.getElementById("AXvalue");
-    angleXValue.innerHTML = radToDeg(rotation[0]);
-    document.getElementById("sliderAX").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[0] = angleInRadians;
-        angleXValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Y
-    var angleYValue = document.getElementById("AYvalue");
-    angleYValue.innerHTML = radToDeg(rotation[1]);
-    document.getElementById("sliderAY").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[1] = angleInRadians;
-        angleYValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-    //rotation Z
-    var angleZValue = document.getElementById("AZvalue");
-    angleZValue.innerHTML = radToDeg(rotation[2]);
-    document.getElementById("sliderAZ").onchange = function (event) {
-        var angleInDegrees = 360 - event.target.value;
-        angleInRadians = angleInDegrees * Math.PI / 180; //convert degree to radian
-        rotation[2] = angleInRadians;
-        angleZValue.innerHTML = 360 - angleInDegrees;
-        requestAnimationFrame(render);
-    };
-
-
-    //Update scaleX according to scaleX slider
-    var scaleX = document.getElementById("scaleX");
-    scaleX.innerHTML = scale[0];
-    document.getElementById("sliderscaleX").onchange = function (event) {
-        scale[0] = event.target.value;
-        scaleX.innerHTML = scale[0];
-        requestAnimationFrame(render);
-    };
-
-
-    //Update scaleY according to scaleY slider
-    var scaleY = document.getElementById("scaleY");
-    scaleY.innerHTML = scale[1];
-    document.getElementById("sliderscaleY").onchange = function (event) {
-        scale[1] = event.target.value;
-        scaleY.innerHTML = scale[1];
-        requestAnimationFrame(render);
-    };
-
-    //Update scaleZ according to scaleZ slider
-    var scaleZ = document.getElementById("scaleZ");
-    scaleZ.innerHTML = scale[2];
-    document.getElementById("sliderscaleZ").onchange = function (event) {
-        scale[2] = event.target.value;
-        scaleZ.innerHTML = scale[2];
-        requestAnimationFrame(render);
-    };
-
+    rotation = [degToRad(15), degToRad(11), degToRad(12)];
 
     primitiveType = gl.TRIANGLES;
     requestAnimationFrame(render);
 }
 
 function render() {
-    // Update rotationO
-    var angleInDegrees = 30;
-    var angleInRadians = degToRad(angleInDegrees);
-    rotationO[1] += angleInRadians / 60; // Rotate counter-clockwise around the Z-axis
-    rotation[1] += 0.075; // Tambahkan perubahan sudut dalam setiap frame (misalnya, 0.01 radian)
-
-
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE); //enable depth buffer
     gl.enable(gl.DEPTH_TEST);
-    drawO();
+
+    // Update rotationO
+    var angleInDegrees = 30;
+    var angleInRadians = degToRad(angleInDegrees);
+    rotationO[1] += angleInRadians / 10;// Rotate counter-clockwise around the Z-axis
+    rotation[1] -= 0.05;
+
+
+    drawO(); // Draw the 'O' object
+    drawH(2); // Draw the 'H' object
+    drawH(1); // Draw the 'H' object
     
-    drawH(1);
-    drawH(2)
     requestAnimationFrame(render); //refresh
 }
-
 
 function radToDeg(r) {
     return r * 180 / Math.PI;
@@ -248,6 +145,8 @@ function drawO() {
     matrix = m4.translate(matrix, translation[0] + centerO[0], translation[1] + centerO[1], translation[2] + centerO[2]);
 
     // Lakukan rotasi di sekitar sumbu Y
+    matrix = m4.zRotate(matrix, 0);
+    matrix = m4.xRotate(matrix, 10);
     matrix = m4.yRotate(matrix, rotationO[1]);
 
     // Translate kembali ke posisi awal
@@ -267,25 +166,21 @@ function drawH(numH) {
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
     translation = shapeTranslation[numH];
+    var translationO = shapeTranslation[0];
+    var centerOWorld = [translationO[0] + centerO[0], translationO[1] + centerO[1], translationO[2] + centerO[2]];
 
-    var centerOWorld = [
-        centerO[0] + shapeTranslation[0][0],
-        centerO[1] + shapeTranslation[0][1],
-        centerO[2] + shapeTranslation[0][2],
-    ];
-
-    const revRadius = 160;
+    const revRadius = 180;
     translation[0] =
     revRadius *
       Math.sin(oxygenRevolution[numH - 1][0]) *
       Math.cos(oxygenRevolution[numH - 1][1]) +
-    centerOWorld[0] - 10;
+    centerOWorld[0];
   translation[1] =
     revRadius *
       Math.sin(oxygenRevolution[numH - 1][0]) *
       Math.sin(oxygenRevolution[numH - 1][1]) +
-    centerOWorld[1] - 55;
-    translation[2] = revRadius * Math.cos(oxygenRevolution[numH - 1][0]) + centerOWorld[2];
+    centerOWorld[1] - 50;
+  translation[2] = revRadius * Math.cos(oxygenRevolution[numH - 1][0]);
 
   oxygenRevolution[numH - 1][0] += (numH === 1 ? -1 : 1) * oxygenRevSpeed[0];
   oxygenRevolution[numH - 1][1] += (numH === 1 ? 1 : -1) * oxygenRevSpeed[1];
@@ -1132,4 +1027,5 @@ function setColors(gl, shape, colorBuffer) {
                 gl.STATIC_DRAW);
             break;
     }
+
 }
