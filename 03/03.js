@@ -29,12 +29,6 @@ var oxygenRevolution = [
 var oxygenRevSpeed = [0.05, degToRad(30) / 100];
 
 var angleInRadians = 0;
-var centerO = [0, 0, 0];
-var angleH = 0;
-var rotationSpeed = 0.01; // Kecepatan rotasi dalam radians per frame
-
-var shiftAngle = 0;
-var shiftSpeed = 15; // Pergeseran 15 derajat setelah satu revolusi
 
 var matrix;
 var matrixLocation;
@@ -294,58 +288,6 @@ function drawH(numH) {
 
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
     gl.drawArrays(primitiveType, offset, 108); // Update count value
-}
-
-function drawO() {
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[1]);
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[1]);
-    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-
-    translation = shapeTranslation[1];
-
-    matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-
-    // Translate ke titik tengah huruf "O"
-    matrix = m4.translate(matrix, translation[0] + centerO[0], translation[1] + centerO[1], translation[2] + centerO[2]);
-
-    // Lakukan rotasi di sekitar sumbu Y
-    matrix = m4.yRotate(matrix, rotationO[1]);
-
-    // Translate kembali ke posisi awal
-    matrix = m4.translate(matrix, -centerO[0], -centerO[1], -centerO[2]);
-
-    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-
-    gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, 120); // Update count value
-}
-
-function drawH(numH, angleH) {
-    // Hitung posisi huruf "H" yang berputar mengelilingi huruf "O"
-    var radius = 200; // Jarak antara titik tengah huruf "O" dan huruf "H"
-    var rotatedX = centerO[0] + shapeTranslation[1][0] + radius * Math.cos(angleH);
-    var rotatedY = centerO[1] + shapeTranslation[1][1] + radius * Math.sin(angleH);
-    var rotatedZ = centerO[2] + shapeTranslation[1][2];
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffers[2]);
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffers[2]);
-    gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-
-    translation = shapeTranslation[numH];
-
-    matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    matrix = m4.translate(matrix, rotatedX, rotatedY, rotatedZ);
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
-    matrix = m4.zRotate(matrix, rotation[2]);
-    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-
-    gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    gl.drawArrays(primitiveType, offset, count);
 }
 
 
