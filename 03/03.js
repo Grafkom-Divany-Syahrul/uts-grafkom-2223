@@ -98,22 +98,22 @@ function render() {
     // Update rotationO
     var angleInDegrees = 30;
     var angleInRadians = degToRad(angleInDegrees);
-    rotationO[1] += angleInRadians / 2;// Rotate counter-clockwise around the Z-axis
+    rotationO[1] += angleInRadians / 10;// Rotate counter-clockwise around the Z-axis
     rotation[1] -= 0.05;
 
     if(Math.abs(shapeTranslation[3][0]) == 200 || Math.abs(shapeTranslation[3][0]) == 600 ){
         revolutionH2 = -revolutionH2;
         shapeTranslation[3][2] = -shapeTranslation[3][2]
     }
-    shapeTranslation[3][0] -= 10 * revolutionH2;
-    shapeTranslation[3][1] += 10 * revolutionH2;
+    shapeTranslation[3][0] -= 2 * revolutionH2;
+    shapeTranslation[3][1] += 2 * revolutionH2;
 
     if(Math.abs(shapeTranslation[2][0]) == 150 || Math.abs(shapeTranslation[2][0]) == 550 ){
         revolutionH1 = -revolutionH1;
         shapeTranslation[2][2] = -shapeTranslation[2][2]
     }
-    shapeTranslation[2][0] += 10 * revolutionH1;
-    shapeTranslation[2][1] += 10 * revolutionH1;
+    shapeTranslation[2][0] += 2 * revolutionH1;
+    shapeTranslation[2][1] += 2 * revolutionH1;
 
 
     drawO(); // Draw the 'O' object
